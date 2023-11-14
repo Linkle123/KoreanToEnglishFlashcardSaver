@@ -3,4 +3,11 @@
     <string name="word_prompt">Error</string>
     <string name="translation_prompt">Error</string>
     <string name="no_connection">No internet connection! Cannot be translated!</string>
+    <string name="translate_button">Translate</string>
+    <string name="add_card_button">Add Card</string>
+    <string name="save_cards_button">Upload All Cards</string>
+    <string name="change_button">Save Change to Card</string>
+    <string name="delete_this_card">Delete this card</string>
+    <string name="deck_name">From manhwa</string>
+
 </resources>
