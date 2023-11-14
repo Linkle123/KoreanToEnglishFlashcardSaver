@@ -1,46 +1,52 @@
 package com.example.koreantoenglishflashcardsaver
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.os.Bundle
+import android.widget.EditText
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.koreantoenglishflashcardsaver.ui.theme.KoreanToEnglishFlashcardSaverTheme
+import androidx.recyclerview.widget.RecyclerView
+import com.google.cloud.translate.Translate
+import com.google.cloud.translate.TranslateOptions
+import com.google.cloud.translate.Translation
+
 
 class MainActivity : ComponentActivity() {
+    lateinit var adapter: FlashCardAdapter
+    var connected: Boolean = false
+    lateinit var translate: Translate
+    val targetLanguage: String = "Korean"
+    lateinit var inputText: EditText
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            KoreanToEnglishFlashcardSaverTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
-            }
-        }
+        adapter = FlashCardAdapter(this)
+        val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
+        recyclerView.adapter = adapter
+        translate = TranslateOptions.getDefaultInstance().service
+        inputText = findViewById(R.id.translate_text)
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    KoreanToEnglishFlashcardSaverTheme {
-        Greeting("Android")
+    fun translate() {
+        val translation: Translation = translate.translate(
+            inputText.text.toString(),
+            Translate.TranslateOption.sourceLanguage("ko"),
+            Translate.TranslateOption.targetLanguage("en"),
+            Translate.TranslateOption.model("nmt"),
+            Translate.TranslateOption.format("text")
+        )
+    }
+
+    fun checkInternetConnection(): Boolean {
+        //Check internet connection:
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
+
+        //Means that we are connected to a network (mobile or wi-fi)
+        connected =
+            connectivityManager!!.getNetworkInfo(ConnectivityManager.TYPE_MOBILE)!!.state == NetworkInfo.State.CONNECTED ||
+                    connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI)!!.state == NetworkInfo.State.CONNECTED
+        return connected
     }
 }

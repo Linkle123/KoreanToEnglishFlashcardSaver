@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:id="@+id/flashcard"
+    android:background="?android:attr/activatedBackgroundIndicator">
+    <EditText
+        android:id="@+id/word_item"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:inputType="textPersonName"
+        android:hint="@string/word_prompt"
+        android:textSize="20sp"/>
+    <View
+        android:id="@+id/border"
+        android:layout_height="1dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        app:layout_constraintTop_toBottomOf="@id/word_item"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:background="@android:color/darker_gray"
+        app:layout_constraintWidth_percent=".95"/>
+    <EditText
+        android:id="@+id/word_item_translation"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="@string/translation_prompt"
+        android:autofillHints="@string/translation_prompt"
+        android:inputType="textPersonName"
+        android:textSize="20sp"
+        app:layout_constraintTop_toBottomOf="@id/word_item"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
