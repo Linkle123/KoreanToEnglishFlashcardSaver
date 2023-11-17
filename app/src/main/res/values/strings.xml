@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">KoreanToEnglishFlashcardSaver</string>
-    <string name="word_prompt">Error</string>
-    <string name="translation_prompt">Error</string>
+    <string name="word_prompt">Word</string>
+    <string name="translation_prompt">Translation</string>
     <string name="no_connection">No internet connection! Cannot be translated!</string>
     <string name="translate_button">Translate</string>
     <string name="add_card_button">Add Card</string>
@@ -9,5 +9,8 @@
     <string name="change_button">Save Change to Card</string>
     <string name="delete_this_card">Delete this card</string>
     <string name="deck_name">From manhwa</string>
-
+    <string name="model_name">Basic card</string>
+    <string name="card_add_fail">Failed to save cards to AnkiDroid</string>
+    <string name="translation_api_fail">Failed to connect to api. Please relaunch app</string>
+    <string name="internet_connection_fail">Failed to connect to the internet</string>
 </resources>

@@ -40,9 +40,10 @@
     <Button
         android:id="@+id/close_button"
         android:text="X"
+        android:textSize="10sp"
         android:textColor="@color/white"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="32dp"
+        android:layout_height="48dp"
         android:clickable="true"
         android:focusable="true"
         app:layout_constraintRight_toRightOf="parent"

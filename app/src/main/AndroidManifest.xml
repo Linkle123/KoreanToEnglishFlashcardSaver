@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <queries>
         <package android:name="com.ichi2.anki" />
     </queries>
@@ -16,6 +17,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.KoreanToEnglishFlashcardSaver"
         tools:targetApi="31">
+        <meta-data
+            android:name="com.google.android.translate.API_KEY"
+            android:value="${TRANSLATION_API_KEY}" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
