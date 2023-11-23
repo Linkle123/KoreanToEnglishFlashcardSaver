@@ -41,7 +41,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.main_activity)
-        flashcards.add(Flashcard("test","testing"))
         adapter = FlashCardAdapter(this, flashcards) { position -> onItemCloseClick(position) }
         val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
         recyclerView.adapter = adapter
@@ -156,18 +155,45 @@ class MainActivity : ComponentActivity() {
     }
 
     fun saveAllCards() {
-        val deckId: Long? = getOrGenerateDeckId()
-        val modelId: Long? = getOrGenerateModelId()
+        val executor = Executors.newSingleThreadExecutor()
+        val handler = Handler(Looper.getMainLooper())
 
-        if ((deckId == null) || (modelId == null)) {
-            Toast.makeText(this, getResources().getString(R.string.card_add_fail), Toast.LENGTH_LONG).show()
-            return
-        }
-        var convertedCards = convertFlashcardsToStringArray()
-        convertedCards = handleDuplicateCards(convertedCards, modelId)
-        if(convertedCards.size != 0) {
-            ankiAPI.addNotes(deckId, modelId, convertedCards, null)
-            clearArray()
+        executor.execute {
+            val deckId: Long? = getOrGenerateDeckId()
+            val modelId: Long? = getOrGenerateModelId()
+            var failedApi = false
+
+            if ((deckId == null) || (modelId == null)) {
+                failedApi = true
+                executor.shutdown()
+            }
+            var convertedCards = convertFlashcardsToStringArray()
+            val filteredCards = handleDuplicateCards(convertedCards, modelId!!).toList()
+            if (filteredCards.size != 0) {
+                //val tag = mutableListOf<Set<String>>()
+                for (card in filteredCards) {
+                    //tag.add(listOf("Translation_to_Flashcard_App").toSet())
+                    for (field in card)
+                        Log.i("field", field)
+                }
+                Log.i("deckId", deckId.toString())
+                Log.i("modelid", modelId.toString())
+                //val converterForApi = KotlintoJavaApiConverter(ankiAPI)
+                //converterForApi.addNotesWithJavaObjects(deckId!!, modelId, filteredCards)
+                ankiAPI.addNotes(deckId!!, modelId, filteredCards, null)
+            }
+            handler.post{
+                if(failedApi){
+                    Toast.makeText(
+                        this,
+                        getResources().getString(R.string.card_add_fail),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                else {
+                    clearArray()
+                }
+            }
         }
     }
 
@@ -188,7 +214,7 @@ class MainActivity : ComponentActivity() {
     }
 
     fun getModelId(modelName: String): Long? {
-        val modelList: Map<Long, String>? = ankiAPI.getModelList()
+        val modelList: Map<Long, String>? = ankiAPI.modelList
         if (modelList != null) {
             for ((key, value) in modelList) {
                 if (value.equals(modelName, ignoreCase = true)) {
@@ -200,7 +226,7 @@ class MainActivity : ComponentActivity() {
     }
 
     fun getDeckId(deckName: String): Long? {
-        val deckList: Map<Long, String>? = ankiAPI.getDeckList()
+        val deckList: Map<Long, String>? = ankiAPI.deckList
         if (deckList != null) {
             for ((key, value) in deckList) {
                 if (value.equals(deckName, ignoreCase = true)) {
@@ -216,7 +242,7 @@ class MainActivity : ComponentActivity() {
         for(card in cards){
             wordsArray.add(card[0])
         }
-        val duplicatesArray: SparseArray<List<NoteInfo>>? = ankiAPI.findDuplicateNotes(modelId, wordsArray)
+        val duplicatesArray: SparseArray<MutableList<NoteInfo?>>? = ankiAPI.findDuplicateNotes(modelId, wordsArray)
         if (duplicatesArray == null || duplicatesArray.size() == 0){
             return cards
         }

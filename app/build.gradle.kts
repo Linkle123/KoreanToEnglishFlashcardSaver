@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "com.example.koreantoenglishflashcardsaver"
-    compileSdk = 34
+    compileSdk = 33
 
     defaultConfig {
         applicationId = "com.example.koreantoenglishflashcardsaver"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 33
         versionCode = 1
         versionName = "1.0"
 
@@ -54,9 +54,9 @@ android {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
-    implementation("androidx.activity:activity-compose:1.8.0")
+    implementation("androidx.activity:activity-compose:1.7.2")
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
@@ -64,6 +64,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -73,8 +74,8 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     // Ankidroid
-    implementation("com.github.ankidroid:Anki-Android:api-v1.1.0")
-
+    implementation("com.github.ankidroid:Anki-Android:v2.17alpha6")
+    // Versions that resolve v2.14.13 v2.14alpha21 2.15alpha16 api-v1.1.0 2.12alpha2 2.10alpha17 2.9alph 2.9alpha67 2.9alpha55
     // Google translate
     implementation("com.google.cloud:google-cloud-translate:2.30.0")
 
