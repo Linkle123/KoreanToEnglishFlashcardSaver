@@ -5,9 +5,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="105dp"
-    android:layout_marginTop="8dp"
+    android:layout_marginTop="1dp"
+    android:layout_marginBottom="3dp"
     android:id="@+id/flashcard"
-    android:background="?android:attr/activatedBackgroundIndicator">
+    android:background="@drawable/flashcard_background">
     <TextView
         android:id="@+id/word_item"
         android:layout_width="match_parent"
@@ -15,7 +16,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toTopOf="@id/border"
-        android:textSize="18sp"/>
+        android:textSize="16sp"/>
 
     <View
         android:id="@+id/border"
@@ -33,7 +34,7 @@
         android:id="@+id/word_item_translation"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:textSize="18sp"
+        android:textSize="16sp"
         app:layout_constraintTop_toBottomOf="@id/border"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
@@ -43,7 +44,7 @@
         android:textSize="10sp"
         android:textColor="@color/white"
         android:layout_width="32dp"
-        android:layout_height="48dp"
+        android:layout_height="32dp"
         android:clickable="true"
         android:focusable="true"
         app:layout_constraintRight_toRightOf="parent"

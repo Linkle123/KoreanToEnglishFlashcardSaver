@@ -1,6 +1,8 @@
 package com.example.koreantoenglishflashcardsaver
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Looper
@@ -10,24 +12,24 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.recyclerview.widget.RecyclerView
-import com.google.auth.oauth2.AccessToken
-import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.translate.Translate
 import com.google.cloud.translate.TranslateOptions
 import com.google.cloud.translate.Translation
 import com.ichi2.anki.api.AddContentApi
 import com.ichi2.anki.api.NoteInfo
-import java.util.Date
-import java.util.Properties
 import java.util.concurrent.Executors
 import android.os.Handler
 import android.util.Log
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.lifecycle.Observer
+import androidx.lifecycle.asFlow
+import com.example.koreantoenglishflashcardsaver.model.*
 
 class MainActivity : ComponentActivity() {
     lateinit var adapter: FlashCardAdapter
-    var flashcards: ArrayList<Flashcard> = ArrayList<Flashcard>()
 
-    val dayInMilliseconds: Long = 86400000
     lateinit var translateService: Translate
     val sourceLanguage: String = "ko"
     val targetLanguage: String = "en"
@@ -36,12 +38,20 @@ class MainActivity : ComponentActivity() {
 
     lateinit var ankiAPI: AddContentApi
 
+    private val flashcardViewModel: FlashcardViewModel by viewModels {
+         FlashcardViewModelFactory((application as FlashCardDeckApplication).database)
+    }
+
+    private val deckViewModel: DeckViewModel by viewModels {
+        DeckViewModelFactory((application as FlashCardDeckApplication).database)
+    }
+
     @SuppressLint("DirectDateInstantiation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.main_activity)
-        adapter = FlashCardAdapter(this, flashcards) { position -> onItemCloseClick(position) }
+        adapter = FlashCardAdapter(this) { position -> onItemCloseClick(position) }
         val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
         recyclerView.adapter = adapter
 
@@ -78,6 +88,7 @@ class MainActivity : ComponentActivity() {
         val translateButton = findViewById<Button>(R.id.translate_button)
         val addCardButton = findViewById<Button>(R.id.add_card_button)
         val saveCardsButton = findViewById<Button>(R.id.save_cards_button)
+        val deckChangeButton = findViewById<Button>(R.id.deck_change_button)
 
         translateButton.setOnClickListener{
             translate()
@@ -88,12 +99,21 @@ class MainActivity : ComponentActivity() {
         saveCardsButton.setOnClickListener {
             saveAllCards()
         }
+        deckChangeButton.setOnClickListener {
+            startDeckChangeActivity()
+        }
 
         ankiAPI = AddContentApi(this)
+
+        flashcardViewModel.allFlashcards.observe(this, Observer {
+            it?.let {
+                adapter.submitList(it)
+            }
+        })
     }
 
     private fun onItemCloseClick(position: Int) {
-        flashcards.removeAt(position)
+        flashcardViewModel.deleteByFlashcardId(position)
         adapter.notifyItemRemoved(position)
     }
 
@@ -145,12 +165,8 @@ class MainActivity : ComponentActivity() {
             val card = Flashcard(inputText.text.toString(), outputText.text.toString())
             inputText.text = null
             outputText.text = null
-            flashcards.add(card)
-            adapter.notifyItemInserted(flashcards.size - 1)
-            for(card in flashcards) {
-                Log.i("word", card.word)
-                Log.i("translation", card.translation)
-            }
+            flashcardViewModel.insert(card)
+            adapter.notifyDataSetChanged()
         }
     }
 
@@ -170,17 +186,7 @@ class MainActivity : ComponentActivity() {
             var convertedCards = convertFlashcardsToStringArray()
             val filteredCards = handleDuplicateCards(convertedCards, modelId!!).toList()
             if (filteredCards.size != 0) {
-                //val tag = mutableListOf<Set<String>>()
-                for (card in filteredCards) {
-                    //tag.add(listOf("Translation_to_Flashcard_App").toSet())
-                    for (field in card)
-                        Log.i("field", field)
-                }
-                Log.i("deckId", deckId.toString())
-                Log.i("modelid", modelId.toString())
-                //val converterForApi = KotlintoJavaApiConverter(ankiAPI)
-                //converterForApi.addNotesWithJavaObjects(deckId!!, modelId, filteredCards)
-                ankiAPI.addNotes(deckId!!, modelId, filteredCards, null)
+                ankiAPI.addNotes(modelId!!, deckId!!, filteredCards, null)
             }
             handler.post{
                 if(failedApi){
@@ -260,17 +266,46 @@ class MainActivity : ComponentActivity() {
     }
 
     fun convertFlashcardsToStringArray(): MutableList<Array<String>>{
-        val array = mutableListOf<Array<String>>()
-        for(flashcard: Flashcard in flashcards){
-            val element = arrayOf<String>(flashcard.word, flashcard.translation)
-            array.add(element)
+        val flashcardArray = mutableListOf<Array<String>>()
+        if(flashcardViewModel.allFlashcards.value != null) {
+            for (flashcard: Flashcard in flashcardViewModel.allFlashcards.value!!) {
+                val element = arrayOf<String>(flashcard.word, flashcard.translation)
+                flashcardArray.add(element)
+            }
         }
-        return array
+        return flashcardArray
+    }
+
+    fun convertDecksToStringArray(): ArrayList<String>{
+        val deckArray = ArrayList<String>()
+        if(deckViewModel.allDecks.value != null){
+            for (deck: Deck in deckViewModel.allDecks.value!!){
+                deckArray.add(deck.deckName)
+            }
+        }
+        return deckArray
     }
 
     fun clearArray(){
-        val cardCount: Int = flashcards.size
-        flashcards.clear()
-        adapter.notifyItemRangeRemoved(0, cardCount)
+        flashcardViewModel.deleteAll()
+        adapter.notifyDataSetChanged()
     }
+
+
+    val openDeckChangeActivity = registerForActivityResult(ActivityResultContracts.StartActivityForResult())
+    { result: ActivityResult ->
+        if(result.resultCode == Activity.RESULT_OK) {
+
+        }
+
+    }
+
+    fun startDeckChangeActivity(){
+        val decks = convertDecksToStringArray()
+        val intent = Intent(this, DeckChangeActivity::class.java).apply{
+            putExtra("e", decks)
+        }
+        openDeckChangeActivity.launch(intent)
+    }
+
 }
