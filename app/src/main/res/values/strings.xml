@@ -4,9 +4,15 @@
     <string name="translation_prompt">Translation</string>
     <string name="no_connection">No internet connection! Cannot be translated!</string>
     <string name="translate_button">Translate</string>
+    <string name="translation_api_fail">Failed to connect to translation service. Please relaunch app</string>
+    <string name="internet_connection_fail">Failed to connect to the internet</string>
+
     <string name="add_card_button">Add Card</string>
     <string name="save_cards_button">Upload All Cards</string>
     <string name="deck_change_button">Change Deck</string>
+    <string name="delete_this_card">Delete This Card</string>
+
+
     <string name="cancel_button">Cancel</string>
     <string name="save_button">Save</string>
     <string name="add_button">Add</string>
@@ -14,8 +20,9 @@
     <string name="deck_label">New Deck Title Here</string>
     <string name="model_name">Basic</string>
     <string name="deck_title_label">Choose Deck</string>
-    <string name="deck_new_label">Add New Deck</string>
+    <string name="deck">Deck:</string>
+    <string name="deck_new_label">Add New Deck:</string>
     <string name="card_add_fail">Failed to save cards to AnkiDroid</string>
-    <string name="translation_api_fail">Failed to connect to api. Please relaunch app</string>
-    <string name="internet_connection_fail">Failed to connect to the internet</string>
+    <string name="duplicate_deck_add_attempt">Deck is already saved. Please select this deck from the dropdown menu above.</string>
+    <string name="deck_add_success">New deck saved. Please select this deck from the dropdown menu above.</string>
 </resources>

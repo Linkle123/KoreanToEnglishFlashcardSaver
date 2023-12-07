@@ -24,9 +24,17 @@ public abstract class AppRoomDatabase : RoomDatabase() {
             super.onCreate(db)
             INSTANCE?.let { database: AppRoomDatabase ->
                 scope.launch {
-
+                    populateDatabase(database.flashcardDao(), database.deckDao())
                 }
             }
+        }
+        suspend fun populateDatabase(flashcardDao: FlashcardDao, deckDao: DeckDao) {
+            // Delete all content here.
+            flashcardDao.deleteAll()
+            deckDao.deleteAll()
+
+            val deck = Deck(this.context.resources.getString(R.string.deck_name), true)
+            deckDao.insert(deck)
         }
     }
 
@@ -44,7 +52,7 @@ public abstract class AppRoomDatabase : RoomDatabase() {
                     "flashcarddeck_database"
                 )
                     .allowMainThreadQueries()
-                    //.addCallback(PageDatabaseCallback(scope, context))
+                    .addCallback(FlashcardDatabaseCallback(scope, context))
                     .build()
                 INSTANCE = instance
                 // return instance

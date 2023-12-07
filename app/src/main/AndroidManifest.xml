@@ -9,6 +9,7 @@
         <package android:name="com.ichi2.anki" />
     </queries>
     <application
+        android:name="com.example.koreantoenglishflashcardsaver.model.FlashCardDeckApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -21,6 +22,10 @@
         <meta-data
             android:name="com.google.android.translate.API_KEY"
             android:value="${TRANSLATION_API_KEY}" />
+        <activity
+            android:name=".DeckChangeActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

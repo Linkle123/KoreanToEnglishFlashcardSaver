@@ -14,7 +14,7 @@ data class Flashcard(
 @Entity(tableName = "decks")
 data class Deck(
     var deckName: String,
-    var deckId: Long) : Serializable{
+    var selected: Boolean) : Serializable{
     @PrimaryKey(autoGenerate = true) var id: Int = 0
 }
 
