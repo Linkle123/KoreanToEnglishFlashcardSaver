@@ -32,8 +32,8 @@ class DatabaseUtils(contextApp: Context, databaseReference: DatabaseViewModel, f
         }
     }
 
-    fun onItemCloseClick(position: Int) {
-        databaseViewModel.deleteByFlashcardId(position)
+    fun onItemCloseClick(position: Int, id: Int) {
+        databaseViewModel.deleteByFlashcardId(id)
         adapter.notifyItemRemoved(position)
     }
 

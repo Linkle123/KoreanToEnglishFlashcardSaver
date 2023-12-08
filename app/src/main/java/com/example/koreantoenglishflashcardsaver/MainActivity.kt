@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.main_activity)
-        adapter = FlashCardAdapter(this) { position -> databaseHelper.onItemCloseClick(position) }
+        adapter = FlashCardAdapter(this) { position, id -> databaseHelper.onItemCloseClick(position, id) }
         val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
         recyclerView.adapter = adapter
 

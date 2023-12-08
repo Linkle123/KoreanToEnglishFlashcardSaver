@@ -12,10 +12,10 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.koreantoenglishflashcardsaver.model.Flashcard
 
-class FlashCardAdapter(private val context: Context, private val onItemClick: (position: Int) -> Unit)
+class FlashCardAdapter(private val context: Context, private val onItemClick: (position: Int, id: Int) -> Unit)
     : ListAdapter<Flashcard, FlashCardAdapter.ItemViewHolder>(FlashCardComparator()){
 
-        class ItemViewHolder(private val view: View, private val onItemClick: (position: Int) -> Unit)
+        class ItemViewHolder(private val view: View, private val onItemClick: (position: Int, id: Int) -> Unit)
             : RecyclerView.ViewHolder(view){
             val flashcard: ConstraintLayout = view.findViewById(R.id.flashcard)
             val word: TextView = view.findViewById(R.id.word_item)
@@ -30,20 +30,20 @@ class FlashCardAdapter(private val context: Context, private val onItemClick: (p
 
             private fun deleteCard() {
                 val position = absoluteAdapterPosition
-                onItemClick(position)
+                onItemClick(position, id)
             }
         }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
         val adapterLayout = LayoutInflater.from(parent.context).
             inflate(R.layout.flashcard_layout, parent, false)
-        return ItemViewHolder(adapterLayout){ position -> onItemClick(position) }
+        return ItemViewHolder(adapterLayout){ position, id -> onItemClick(position, id) }
     }
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
         val item = getItem(position)
         holder.word.text = item.word
         holder.translation.text = item.translation
-        holder.id = position
+        holder.id = item.id
     }
 
     class FlashCardComparator : DiffUtil.ItemCallback<Flashcard>() {
