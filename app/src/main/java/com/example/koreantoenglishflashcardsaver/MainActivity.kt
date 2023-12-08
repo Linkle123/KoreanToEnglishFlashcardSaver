@@ -90,6 +90,8 @@ class MainActivity : ComponentActivity() {
         }
         addCardButton.setOnClickListener {
             databaseHelper.addCard(inputText.text.toString(), outputText.text.toString())
+            inputText.text.clear()
+            outputText.text.clear()
         }
         saveCardsButton.setOnClickListener {
             ankiHelper.saveAllCards(selectedDeckName)
