@@ -16,10 +16,10 @@ interface DeckDao {
     suspend fun deleteDeckById(deckId: Int)
 
     @Query("SELECT * FROM decks WHERE selected = :selected LIMIT 1")
-    fun getSelectedDeck(selected: Boolean = true): Deck
+    fun getSelectedDeck(selected: Boolean = true): Deck?
 
     @Query("SELECT * FROM decks WHERE deckName = :deckName")
-    fun getDeckByName(deckName: String): Deck
+    fun getDeckByName(deckName: String): Deck?
 
     @Query("DELETE FROM flashcards")
     suspend fun deleteAll()

@@ -5,30 +5,28 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
 import android.os.Looper
-import android.util.SparseArray
 import android.widget.Button
 import android.widget.EditText
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.recyclerview.widget.RecyclerView
-import com.google.cloud.translate.Translate
-import com.google.cloud.translate.TranslateOptions
-import com.google.cloud.translate.Translation
-import com.ichi2.anki.api.AddContentApi
-import com.ichi2.anki.api.NoteInfo
-import java.util.concurrent.Executors
-import android.os.Handler
 import android.util.Log
+import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.lifecycle.Observer
 import com.example.koreantoenglishflashcardsaver.model.*
+import com.google.cloud.translate.Translate
+import com.google.cloud.translate.TranslateOptions
+import com.google.cloud.translate.Translation
+import java.util.concurrent.Executors
 
 class MainActivity : ComponentActivity() {
     lateinit var adapter: FlashCardAdapter
+    lateinit var deckTitle: TextView
 
     lateinit var translateService: Translate
     val sourceLanguage: String = "ko"
@@ -36,44 +34,40 @@ class MainActivity : ComponentActivity() {
     lateinit var inputText: EditText
     lateinit var outputText: EditText
 
-    lateinit var ankiAPI: AddContentApi
+    lateinit var ankiHelper: AnkiApi
     lateinit var selectedDeckName: String
 
     private val databaseViewModel: DatabaseViewModel by viewModels {
         DatabaseViewModelFactory((application as FlashCardDeckApplication).database)
     }
+    lateinit var databaseHelper: DatabaseUtils
 
     @SuppressLint("DirectDateInstantiation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.main_activity)
-        adapter = FlashCardAdapter(this) { position -> onItemCloseClick(position) }
+        adapter = FlashCardAdapter(this) { position -> databaseHelper.onItemCloseClick(position) }
         val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
         recyclerView.adapter = adapter
 
-        val selectedDeck = databaseViewModel.getSelectedDeck()
-        if(selectedDeck != null)
-            selectedDeckName = databaseViewModel.getSelectedDeck().deckName
-        else {
-            selectedDeckName = resources.getString(R.string.deck_name)
-        }
+        databaseHelper = DatabaseUtils(this, databaseViewModel, adapter)
+        ankiHelper = AnkiApi(this, databaseHelper)
+
+        selectedDeckName = databaseHelper.getSelectedDeckName()
 
         var accessKey: String? = null
         this.packageManager.getApplicationInfo(this.packageName, PackageManager.GET_META_DATA)
             .apply{
-            accessKey = metaData.getString("com.google.android.translate.API_KEY")
-        }
+                accessKey = metaData.getString("com.google.android.translate.API_KEY")
+            }
 
         if(accessKey != null) {
-            //val expirationDate = Date(Date().getTime() + dayInMilliseconds)
-           // val credentials = GoogleCredentials.newBuilder().setAccessToken(AccessToken(accessKey, expirationDate)).build()
             translateService = TranslateOptions.newBuilder().setApiKey(accessKey).build().service
         }
         else{
-            Toast.makeText(this, getResources().getString(R.string.translation_api_fail), Toast.LENGTH_LONG).show()
+            Toast.makeText(this, resources.getString(R.string.translation_api_fail), Toast.LENGTH_LONG).show()
         }
-
 
         // Initialize the textfields to null
         inputText = findViewById(R.id.translate_text)
@@ -86,38 +80,28 @@ class MainActivity : ComponentActivity() {
         val addCardButton = findViewById<Button>(R.id.add_card_button)
         val saveCardsButton = findViewById<Button>(R.id.save_cards_button)
         val deckChangeButton = findViewById<Button>(R.id.deck_change_button)
-        val deckTitle = findViewById<TextView>(R.id.deck_name)
+        deckTitle = findViewById<TextView>(R.id.deck_name)
         deckTitle.text = selectedDeckName
 
+
         translateButton.setOnClickListener{
-            translate()
+            val translatedText = translate(inputText.text.toString())
+            outputText.setText(translatedText)
         }
         addCardButton.setOnClickListener {
-            addCard()
+            databaseHelper.addCard(inputText.text.toString(), outputText.text.toString())
         }
         saveCardsButton.setOnClickListener {
-            saveAllCards()
+            ankiHelper.saveAllCards(selectedDeckName)
         }
         deckChangeButton.setOnClickListener {
             startDeckChangeActivity()
         }
 
-        ankiAPI = AddContentApi(this)
-
-        databaseViewModel.allFlashcards.observe(this, Observer {
-            it?.let {
-                adapter.submitList(it)
-            }
-        })
+        databaseHelper.connectRecyclerToData(this)
     }
 
-    private fun onItemCloseClick(position: Int) {
-        databaseViewModel.deleteByFlashcardId(position)
-        adapter.notifyItemRemoved(position)
-    }
-
-
-    fun translate(){
+    fun translate(word: String): String {
         val executor = Executors.newSingleThreadExecutor()
         val handler = Handler(Looper.getMainLooper())
 
@@ -136,17 +120,19 @@ class MainActivity : ComponentActivity() {
                 translatedText = response.translatedText
             }
             handler.post {
-                if (succeededTranslating)
+                if (succeededTranslating) {
                     outputText.setText(translatedText)
-                else {
+                }
+                else{
                     Toast.makeText(
                         this,
-                        getResources().getString(R.string.internet_connection_fail),
+                        resources.getString(R.string.internet_connection_fail),
                         Toast.LENGTH_LONG
                     ).show()
                 }
             }
         }
+        return  translatedText
     }
 
     fun internetIsConnected(): Boolean {
@@ -158,153 +144,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun addCard() {
-        if(inputText.text.toString() != "" && outputText.text.toString() != "") {
-            val card = Flashcard(inputText.text.toString(), outputText.text.toString())
-            inputText.text = null
-            outputText.text = null
-            databaseViewModel.insertFlashCard(card)
-            adapter.notifyDataSetChanged()
-        }
+    fun updateSelectedDeck(newDeckName: String){
+        selectedDeckName = databaseHelper.updateSelectedDeck(newDeckName)
+        deckTitle.setText(newDeckName)
     }
-
-    fun saveAllCards() {
-        val executor = Executors.newSingleThreadExecutor()
-        val handler = Handler(Looper.getMainLooper())
-
-        executor.execute {
-            val deckId: Long? = getOrGenerateDeckId(selectedDeckName)
-            val modelId: Long? = getOrGenerateModelId()
-            var failedApi = false
-
-            if ((deckId == null) || (modelId == null)) {
-                failedApi = true
-                executor.shutdown()
-            }
-            var convertedCards = convertFlashcardsToStringArray()
-            val filteredCards = handleDuplicateCards(convertedCards, modelId!!).toList()
-            if (filteredCards.size != 0) {
-                ankiAPI.addNotes(modelId!!, deckId!!, filteredCards, null)
-            }
-            handler.post{
-                if(failedApi){
-                    Toast.makeText(
-                        this,
-                        getResources().getString(R.string.card_add_fail),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-                else {
-                    clearArray()
-                }
-            }
-        }
-    }
-
-    fun getOrGenerateDeckId(deckName: String): Long? {
-        var deckId: Long? = getDeckId(deckName)
-        if (deckId == null) {
-            deckId = generateDeck(deckName)
-        }
-        return deckId
-    }
-
-    fun getOrGenerateModelId(): Long?{
-        var modelId: Long? = getModelId(this.resources.getString(R.string.model_name))
-        if (modelId == null) {
-            modelId = ankiAPI.addNewBasicModel(this.resources.getString(R.string.model_name))
-        }
-        return modelId
-    }
-
-    fun getModelId(modelName: String): Long? {
-        val modelList: Map<Long, String>? = ankiAPI.modelList
-        if (modelList != null) {
-            for ((key, value) in modelList) {
-                if (value.equals(modelName, ignoreCase = true)) {
-                    return key
-                }
-            }
-        }
-        return null
-    }
-
-    fun getDeckId(deckName: String): Long? {
-        val deckList: Map<Long, String>? = ankiAPI.deckList
-        if (deckList != null) {
-            for ((key, value) in deckList) {
-                if (value.equals(deckName, ignoreCase = true)) {
-                    return key
-                }
-            }
-        }
-        return null
-    }
-
-    fun generateDeck(deckName: String): Long? {
-        val deckId = ankiAPI.addNewDeck(deckName)
-        val deck = databaseViewModel.getDeckByName(deckName)
-
-        if(deckId != null){
-            databaseViewModel.insertDeck(Deck(deckName, deck.selected))
-        }
-        return deckId
-    }
-
-    fun generateMultipleDecks(decks: ArrayList<String>) {
-        for(deck in decks) {
-            val deckId = ankiAPI.addNewDeck(deck)
-            if (deckId != null) {
-                databaseViewModel.insertDeck(Deck(deck, false))
-            }
-        }
-    }
-    fun handleDuplicateCards(cards: MutableList<Array<String>>, modelId: Long): MutableList<Array<String>>{
-        val wordsArray = mutableListOf<String>()
-        for(card in cards){
-            wordsArray.add(card[0])
-        }
-        val duplicatesArray: SparseArray<MutableList<NoteInfo?>>? = ankiAPI.findDuplicateNotes(modelId, wordsArray)
-        if (duplicatesArray == null || duplicatesArray.size() == 0){
-            return cards
-        }
-        val fieldIterator: MutableListIterator<Array<String>> = cards.listIterator()
-        var listIndex = -1
-        for (i in 0 until duplicatesArray.size()) {
-            val duplicateIndex: Int = duplicatesArray.keyAt(i)
-            while (listIndex < duplicateIndex) {
-                fieldIterator.next()
-                listIndex++
-            }
-            fieldIterator.remove()
-        }
-        return cards
-    }
-
-    fun convertFlashcardsToStringArray(): MutableList<Array<String>>{
-        val flashcardArray = mutableListOf<Array<String>>()
-        if(databaseViewModel.allFlashcards.value != null) {
-            for (flashcard: Flashcard in databaseViewModel.allFlashcards.value!!) {
-                val element = arrayOf<String>(flashcard.word, flashcard.translation)
-                flashcardArray.add(element)
-            }
-        }
-        return flashcardArray
-    }
-
-    fun convertDecksToStringArray(): ArrayList<String>{
-        val deckArray = ArrayList<String>()
-        for (deck: Deck in databaseViewModel.getAllAlphabetizedDecks()){
-            deckArray.add(deck.deckName)
-        }
-        return deckArray
-    }
-
-    fun clearArray(){
-        databaseViewModel.deleteAllFlashcards()
-        adapter.notifyDataSetChanged()
-    }
-
 
     val openDeckChangeActivity = registerForActivityResult(ActivityResultContracts.StartActivityForResult())
     { result: ActivityResult ->
@@ -313,7 +156,7 @@ class MainActivity : ComponentActivity() {
                 val deckTitle = result.data!!.getStringExtra("deck_title")
                 val newDecks = result.data!!.getStringArrayListExtra("new_decks")
                 if(newDecks != null){
-                    generateMultipleDecks(newDecks)
+                    ankiHelper.generateMultipleDecksInAnki(newDecks)
                 }
                 if(deckTitle != null){
                     updateSelectedDeck(deckTitle)
@@ -322,18 +165,9 @@ class MainActivity : ComponentActivity() {
         }
 
     }
-    fun updateSelectedDeck(deckName: String){
-        selectedDeckName = deckName
-        val oldSelectedDeck = databaseViewModel.getSelectedDeck()
-        val newDeck = databaseViewModel.getDeckByName(deckName)
-
-        oldSelectedDeck.selected = false
-        newDeck.selected = true
-        databaseViewModel.updateDecks(oldSelectedDeck, newDeck)
-    }
 
     fun startDeckChangeActivity(){
-        val decks = convertDecksToStringArray()
+        val decks = databaseHelper.convertDecksToStringArray()
         val intent = Intent(this, DeckChangeActivity::class.java).apply{
             putExtra("deck_list", decks)
         }

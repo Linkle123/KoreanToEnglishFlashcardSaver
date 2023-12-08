@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -11,8 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="500dp"
         app:barrierDirection="right"
-        app:constraint_referenced_ids="translate_text, translated_text, save_cards_button, translate_button, add_card_button" />
-
+        app:constraint_referenced_ids="translate_text, translated_text, save_cards_button, translate_button, add_card_button"/>
     <EditText
         android:id="@+id/translate_text"
         android:layout_width="0dp"
@@ -20,12 +20,11 @@
         android:layout_marginTop="8dp"
         android:layout_marginBottom="32dp"
         android:textSize="16sp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/vertical_barrier"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintWidth_default="percent"
-        app:layout_constraintWidth_percent=".5" />
-
+        app:layout_constraintWidth_percent=".5"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/vertical_barrier"/>
     <EditText
         android:id="@+id/translated_text"
         android:layout_width="0dp"
@@ -33,66 +32,67 @@
         android:layout_marginTop="8dp"
         android:layout_marginBottom="32dp"
         android:textSize="16sp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/vertical_barrier"
-        app:layout_constraintTop_toBottomOf="@id/translate_text"
         app:layout_constraintWidth_default="percent"
-        app:layout_constraintWidth_percent=".5" />
-
+        app:layout_constraintWidth_percent=".5"
+        app:layout_constraintTop_toBottomOf="@id/translate_text"
+        app:layout_constraintRight_toLeftOf="@id/vertical_barrier"
+        app:layout_constraintLeft_toLeftOf="parent"/>
     <Button
         android:id="@+id/translate_button"
+        android:text="@string/translate_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="32dp"
-        android:background="@drawable/basic_action_button"
-        android:text="@string/translate_button"
-        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/translated_text"
         app:layout_constraintRight_toLeftOf="@id/add_card_button"
-        app:layout_constraintTop_toBottomOf="@id/translated_text" />
-
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:background="@drawable/basic_action_button"/>
     <Button
         android:id="@+id/add_card_button"
+        android:text="@string/add_card_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="32dp"
-        android:background="@drawable/basic_action_button"
-        android:text="@string/add_card_button"
-        app:layout_constraintLeft_toRightOf="@id/translate_button"
+        app:layout_constraintTop_toBottomOf="@id/translated_text"
         app:layout_constraintRight_toLeftOf="@id/vertical_barrier"
-        app:layout_constraintTop_toBottomOf="@id/translated_text" />
-
+        app:layout_constraintLeft_toRightOf="@id/translate_button"
+        android:background="@drawable/basic_action_button"/>
     <Button
         android:id="@+id/save_cards_button"
+        android:text="@string/save_cards_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="32dp"
-        android:background="@drawable/basic_action_button"
-        android:text="@string/save_cards_button"
-        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/translate_button"
         app:layout_constraintRight_toLeftOf="@id/vertical_barrier"
-        app:layout_constraintTop_toBottomOf="@id/translate_button" />
-
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:background="@drawable/basic_action_button"/>
     <TextView
         android:id="@+id/deck_name"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:text="@string/deck"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@id/deck_change_button"
         app:layout_constraintLeft_toLeftOf="@id/deck_change_button"
-        app:layout_constraintRight_toRightOf="@id/deck_change_button" />
-
+        app:layout_constraintRight_toRightOf="@id/deck_change_button"/>
     <Button
         android:id="@+id/deck_change_button"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@drawable/basic_action_button"
         android:text="@string/deck_change_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="32dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/vertical_barrier"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/vertical_barrier" />
+        android:background="@drawable/basic_action_button"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"

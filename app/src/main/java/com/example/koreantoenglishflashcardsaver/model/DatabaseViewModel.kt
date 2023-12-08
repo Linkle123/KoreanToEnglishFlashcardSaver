@@ -32,11 +32,11 @@ class DatabaseViewModel(private val database: AppRoomDatabase) : ViewModel() {
         database.deckDao().insert(deck)
     }
 
-    fun getSelectedDeck(): Deck{
+    fun getSelectedDeck(): Deck?{
         return database.deckDao().getSelectedDeck(true)
     }
 
-    fun getDeckByName(deckName: String): Deck{
+    fun getDeckByName(deckName: String): Deck?{
         return database.deckDao().getDeckByName(deckName)
     }
 
