@@ -7,22 +7,23 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
-import androidx.activity.ComponentActivity
-import androidx.recyclerview.widget.RecyclerView
-import android.util.Log
-import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.koreantoenglishflashcardsaver.model.*
 import com.google.cloud.translate.Translate
 import com.google.cloud.translate.TranslateOptions
 import com.google.cloud.translate.Translation
 import java.util.concurrent.Executors
+
 
 class MainActivity : ComponentActivity() {
     lateinit var adapter: FlashCardAdapter
@@ -35,7 +36,6 @@ class MainActivity : ComponentActivity() {
     lateinit var outputText: EditText
 
     lateinit var ankiHelper: AnkiApi
-    lateinit var selectedDeckName: String
 
     private val databaseViewModel: DatabaseViewModel by viewModels {
         DatabaseViewModelFactory((application as FlashCardDeckApplication).database)
@@ -50,11 +50,15 @@ class MainActivity : ComponentActivity() {
         adapter = FlashCardAdapter(this) { position, id -> databaseHelper.onItemCloseClick(position, id) }
         val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
         recyclerView.adapter = adapter
+        val linearLayoutManager = LinearLayoutManager(this)
+        linearLayoutManager.reverseLayout = true
+        linearLayoutManager.stackFromEnd = true
+        recyclerView.setLayoutManager(linearLayoutManager)
 
         databaseHelper = DatabaseUtils(this, databaseViewModel, adapter)
         ankiHelper = AnkiApi(this, databaseHelper)
 
-        selectedDeckName = databaseHelper.getSelectedDeckName()
+        val selectedDeckName = databaseHelper.getSelectedDeckName()
 
         var accessKey: String? = null
         this.packageManager.getApplicationInfo(this.packageName, PackageManager.GET_META_DATA)
@@ -94,7 +98,7 @@ class MainActivity : ComponentActivity() {
             outputText.text.clear()
         }
         saveCardsButton.setOnClickListener {
-            ankiHelper.saveAllCards(selectedDeckName)
+            ankiHelper.saveAllCards(deckTitle.text.toString())
         }
         deckChangeButton.setOnClickListener {
             startDeckChangeActivity()
@@ -147,7 +151,7 @@ class MainActivity : ComponentActivity() {
     }
 
     fun updateSelectedDeck(newDeckName: String){
-        selectedDeckName = databaseHelper.updateSelectedDeck(newDeckName)
+        val selectedDeckName = databaseHelper.updateSelectedDeck(newDeckName)
         deckTitle.setText(newDeckName)
     }
 
@@ -155,13 +159,14 @@ class MainActivity : ComponentActivity() {
     { result: ActivityResult ->
         if(result.resultCode == Activity.RESULT_OK) {
             if(result.data != null) {
-                val deckTitle = result.data!!.getStringExtra("deck_title")
+                val newDeckTitle = result.data!!.getStringExtra("deck_title")
                 val newDecks = result.data!!.getStringArrayListExtra("new_decks")
                 if(newDecks != null){
+                    //Log.i("newDeck", newDecks.get(0))
                     ankiHelper.generateMultipleDecksInAnki(newDecks)
                 }
-                if(deckTitle != null){
-                    updateSelectedDeck(deckTitle)
+                if(newDeckTitle != null){
+                    updateSelectedDeck(newDeckTitle)
                 }
             }
         }
