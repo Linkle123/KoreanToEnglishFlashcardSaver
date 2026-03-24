@@ -7,7 +7,8 @@ import java.io.Serializable
 @Entity(tableName = "flashcards")
 data class Flashcard(
     var word: String,
-    var translation: String) : Serializable{
+    var translations: MutableList<Pair<String, Array<String>>>,
+    var examples: MutableList<Pair<String, String>>?) : Serializable{
     @PrimaryKey(autoGenerate = true) var id: Int = 0
 }
 
@@ -17,4 +18,3 @@ data class Deck(
     var selected: Boolean) : Serializable{
     @PrimaryKey(autoGenerate = true) var id: Int = 0
 }
-

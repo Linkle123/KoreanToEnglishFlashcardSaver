@@ -93,5 +93,9 @@ dependencies {
     // Google translate
     implementation("com.google.cloud:google-cloud-translate:2.30.0")
 
+    // Internet connection
+    implementation("com.android.volley:volley:1.2.1")
+    implementation("org.jsoup:jsoup:1.15.3")
+
 }
 

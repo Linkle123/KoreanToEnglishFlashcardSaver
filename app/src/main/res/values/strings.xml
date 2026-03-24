@@ -5,6 +5,8 @@
     <string name="no_connection">No internet connection! Cannot be translated!</string>
     <string name="translate_button">Translate</string>
     <string name="translation_api_fail">Failed to connect to translation service. Please relaunch app</string>
+    <string name="translation_result_fail">No Search Results. Translation provided. Please check the words again</string>
+    <string name="naver_dic_url">https://korean.dict.naver.com/koendict/#/search?query=</string>
     <string name="internet_connection_fail">Failed to connect to the internet</string>
 
     <string name="add_card_button">Add Card</string>
