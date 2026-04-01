@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
-    android:layout_height="105dp"
+    android:layout_height="wrap_content"
     android:layout_marginTop="1dp"
     android:layout_marginBottom="3dp"
     android:id="@+id/flashcard"
@@ -12,7 +12,7 @@
     <TextView
         android:id="@+id/word_item"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toTopOf="@id/border"
@@ -21,8 +21,8 @@
     <View
         android:id="@+id/border"
         android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_marginHorizontal="10dp"
+        android:layout_height="1dp"
+        android:layout_marginHorizontal="5dp"
         android:layout_marginTop="5dp"
         android:background="@android:color/darker_gray"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -31,11 +31,30 @@
         app:layout_constraintWidth_percent=".95" />
 
     <TextView
-        android:id="@+id/word_item_translation"
+        android:id="@+id/word_item_translations"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
         android:textSize="16sp"
         app:layout_constraintTop_toBottomOf="@id/border"
+        app:layout_constraintBottom_toTopOf="@id/border2"/>
+    <View
+        android:id="@+id/border2"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_marginHorizontal="5dp"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/dotted_line"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/word_item_translations"
+        app:layout_constraintWidth_percent=".95"
+        />
+    <TextView
+        android:id="@+id/word_item_examples"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/border2"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
     <Button

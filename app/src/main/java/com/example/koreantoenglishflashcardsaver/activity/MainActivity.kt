@@ -1,13 +1,9 @@
-package com.example.koreantoenglishflashcardsaver
+package com.example.koreantoenglishflashcardsaver.activity
 
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -16,22 +12,24 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.koreantoenglishflashcardsaver.AnkiApi
+import com.example.koreantoenglishflashcardsaver.model.DatabaseUtils
+import com.example.koreantoenglishflashcardsaver.R
 import com.example.koreantoenglishflashcardsaver.model.*
-import com.google.cloud.translate.Translate
-import com.google.cloud.translate.TranslateOptions
-import com.google.cloud.translate.Translation
-import java.util.concurrent.Executors
+import com.example.koreantoenglishflashcardsaver.translate.TranslateRepository
+import com.example.koreantoenglishflashcardsaver.translate.TranslateViewModel
+import com.example.koreantoenglishflashcardsaver.translate.WebViewRenderer
+import kotlinx.coroutines.launch
 
-
-class MainActivity : ComponentActivity() {
+class MainActivity : BaseActivity() {
     lateinit var adapter: FlashCardAdapter
     lateinit var deckTitle: TextView
 
-    lateinit var translateService: Translate
-    val sourceLanguage: String = "ko"
-    val targetLanguage: String = "en"
     lateinit var inputText: EditText
     lateinit var outputText: EditText
 
@@ -45,8 +43,8 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("DirectDateInstantiation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setupChildLayout(R.layout.main_activity)
 
-        setContentView(R.layout.main_activity)
         adapter = FlashCardAdapter(this) { position, id -> databaseHelper.onItemCloseClick(position, id) }
         val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
         recyclerView.adapter = adapter
@@ -57,21 +55,11 @@ class MainActivity : ComponentActivity() {
 
         databaseHelper = DatabaseUtils(this, databaseViewModel, adapter)
         ankiHelper = AnkiApi(this, databaseHelper)
+        val translateService = TranslateViewModel(TranslateRepository(WebViewRenderer.getInstance(this)))
+
 
         val selectedDeckName = databaseHelper.getSelectedDeckName()
 
-        var accessKey: String? = null
-        this.packageManager.getApplicationInfo(this.packageName, PackageManager.GET_META_DATA)
-            .apply{
-                accessKey = metaData.getString("com.google.android.translate.API_KEY")
-            }
-
-        if(accessKey != null) {
-            translateService = TranslateOptions.newBuilder().setApiKey(accessKey).build().service
-        }
-        else{
-            Toast.makeText(this, resources.getString(R.string.translation_api_fail), Toast.LENGTH_LONG).show()
-        }
 
         // Initialize the textfields to null
         inputText = findViewById(R.id.translate_text)
@@ -89,11 +77,10 @@ class MainActivity : ComponentActivity() {
 
 
         translateButton.setOnClickListener{
-            val translatedText = translate(inputText.text.toString())
-            outputText.setText(translatedText)
+            translateService.translate(inputText.text.toString())
         }
         addCardButton.setOnClickListener {
-            databaseHelper.addCard(inputText.text.toString(), outputText.text.toString())
+            databaseHelper.addCard(inputText.text.toString(), mutableListOf(Pair("", arrayOf(""))), null)
             inputText.text.clear()
             outputText.text.clear()
         }
@@ -103,43 +90,42 @@ class MainActivity : ComponentActivity() {
         deckChangeButton.setOnClickListener {
             startDeckChangeActivity()
         }
+        // Opens the activity to edit the FlashCard
+        adapter.onCardClick = {item ->
+
+        }
+
+        // Asynchronously fetch data from the translateService
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED){
+                translateService.cardState.collect{
+                    // First checks if whether it could get any result at all
+                    if (translateService.cardState.value.word == "" || translateService.cardState.value.translations == null){
+                        Toast.makeText(
+                            baseContext,
+                            resources.getString(R.string.translation_api_fail),
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    // Then checks if it failed to get a complete result
+                    else if(translateService.cardState.value.examples == null){
+                        Toast.makeText(
+                            baseContext,
+                            resources.getString(R.string.translation_result_fail),
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    // If it passes both checks, then it returned a complete translation result
+                    else {
+
+                    }
+                }
+            }
+        }
 
         databaseHelper.connectRecyclerToData(this)
     }
 
-    fun translate(word: String): String {
-        val executor = Executors.newSingleThreadExecutor()
-        val handler = Handler(Looper.getMainLooper())
-
-        var succeededTranslating: Boolean = false
-        var translatedText: String = ""
-        executor.execute {
-            if (internetIsConnected()) {
-                val response: Translation = translateService.translate(
-                    inputText.text.toString(),
-                    Translate.TranslateOption.sourceLanguage(sourceLanguage),
-                    Translate.TranslateOption.targetLanguage(targetLanguage),
-                    Translate.TranslateOption.model("nmt"),
-                    Translate.TranslateOption.format("text")
-                )
-                succeededTranslating = true
-                translatedText = response.translatedText
-            }
-            handler.post {
-                if (succeededTranslating) {
-                    outputText.setText(translatedText)
-                }
-                else{
-                    Toast.makeText(
-                        this,
-                        resources.getString(R.string.internet_connection_fail),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-        }
-        return  translatedText
-    }
 
     fun internetIsConnected(): Boolean {
         return try {

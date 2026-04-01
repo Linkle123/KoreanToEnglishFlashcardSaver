@@ -1,10 +1,10 @@
-package com.example.koreantoenglishflashcardsaver
+package com.example.koreantoenglishflashcardsaver.model
 
 import android.content.Context
 import androidx.lifecycle.Observer
-import com.example.koreantoenglishflashcardsaver.model.DatabaseViewModel
-import com.example.koreantoenglishflashcardsaver.model.Deck
-import com.example.koreantoenglishflashcardsaver.model.Flashcard
+import com.example.koreantoenglishflashcardsaver.activity.FlashCardAdapter
+import com.example.koreantoenglishflashcardsaver.R
+import com.example.koreantoenglishflashcardsaver.activity.MainActivity
 
 class DatabaseUtils(contextApp: Context, databaseReference: DatabaseViewModel, flashcardAdapter: FlashCardAdapter) {
     private val databaseViewModel: DatabaseViewModel
@@ -24,9 +24,12 @@ class DatabaseUtils(contextApp: Context, databaseReference: DatabaseViewModel, f
         })
     }
 
-    fun addCard(word: String, translation: String) {
-        if(word != "" && translation != "") {
-            val card = Flashcard(word, translation)
+    /** Makes a new Flashcard based on the given fields and inserts it into the database and
+     * RecyclerView Adapter
+     */
+    fun addCard(word: String, translations: MutableList<Pair<String, Array<String>>>, examples: MutableList<Pair<String, String>>? = null) {
+        if(word != "" && translations.isNotEmpty()) {
+            val card = Flashcard(word, translations, examples)
             databaseViewModel.insertFlashCard(card)
             adapter.notifyDataSetChanged()
         }
@@ -49,7 +52,7 @@ class DatabaseUtils(contextApp: Context, databaseReference: DatabaseViewModel, f
         val flashcardArray = mutableListOf<Array<String>>()
         if(databaseViewModel.allFlashcards.value != null) {
             for (flashcard: Flashcard in databaseViewModel.allFlashcards.value!!) {
-                val element = arrayOf<String>(flashcard.word, flashcard.translation)
+                val element = arrayOf<String>(flashcard.word, flashcard.getTranslationsAsString()!!)
                 flashcardArray.add(element)
             }
         }

@@ -10,6 +10,7 @@ import com.example.koreantoenglishflashcardsaver.R
 import kotlinx.coroutines.*
 
 @Database(entities = arrayOf(Deck::class, Flashcard::class), version = 1, exportSchema = false)
+@TypeConverters(Converters::class)
 public abstract class AppRoomDatabase : RoomDatabase() {
 
     abstract fun flashcardDao(): FlashcardDao

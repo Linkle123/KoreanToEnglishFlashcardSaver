@@ -41,7 +41,9 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.3"
     }
@@ -49,11 +51,15 @@ android {
         resources {
             //excludes += "/META-INF/{AL2.0,LGPL2.1}"
             excludes += "/META-INF/*"
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "mozilla/public-suffix-list.txt"
         }
     }
 }
 
 dependencies {
+    val coroutines_version = "1.3.9"
+    val room_version = "2.6.1"
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.activity:activity-compose:1.8.1")
@@ -64,8 +70,17 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("com.google.android.material:material:1.13.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
 
+
+    // Testing
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")
+    testImplementation("org.mockito:mockito-core:5.+")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
@@ -74,12 +89,11 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     // Room Database
-    val room_version = "2.6.1"
-
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     annotationProcessor("androidx.room:room-compiler:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
+    implementation ("com.google.code.gson:gson:2.10.1")
 
     // Lifecycle components
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
@@ -96,6 +110,7 @@ dependencies {
     // Internet connection
     implementation("com.android.volley:volley:1.2.1")
     implementation("org.jsoup:jsoup:1.15.3")
-
+    implementation("it.skrape:skrapeit:1.2.2")
+    implementation("it.skrape:skrapeit-browser-fetcher:1.2.2")
 }
 

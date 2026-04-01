@@ -1,4 +1,4 @@
-package com.example.koreantoenglishflashcardsaver
+package com.example.koreantoenglishflashcardsaver.activity
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,6 +8,7 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import com.example.koreantoenglishflashcardsaver.R
 
 class DeckChangeActivity : ComponentActivity() {
     var newDecks = ArrayList<String>()

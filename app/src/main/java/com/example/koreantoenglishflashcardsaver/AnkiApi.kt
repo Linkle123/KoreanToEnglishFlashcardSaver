@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.SparseArray
-import com.example.koreantoenglishflashcardsaver.model.Deck
+import com.example.koreantoenglishflashcardsaver.model.DatabaseUtils
 import com.ichi2.anki.api.AddContentApi
 import com.ichi2.anki.api.NoteInfo
 import java.util.concurrent.Executors

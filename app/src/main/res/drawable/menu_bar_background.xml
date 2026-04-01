@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+<item>
+    <shape android:shape="rectangle">
+        <solid android:color="@color/purple_button_border" />
+        <corners android:bottomRightRadius="5dp"
+            android:bottomLeftRadius="5dp"
+            android:topRightRadius="5dp"
+            android:topLeftRadius="5dp"/>
+    </shape>
+</item>
+<!-- TOP LINE -->
+<item
+    android:top="0dp"
+    android:left="4dp"
+    android:right="4dp"
+    android:gravity="top">
+    <shape>
+        <size android:height="1dp" /> <!-- Thickness -->
+        <solid android:color="@color/black" /> <!-- Line Color -->
+    </shape>
+</item>
+
+<!-- BOTTOM LINE -->
+<item
+    android:bottom="0dp"
+    android:left="4dp"
+    android:right="4dp"
+    android:gravity="bottom">
+    <shape>
+        <size android:height="1dp" /> <!-- Thickness -->
+        <solid android:color="@color/black" /> <!-- Line Color -->
+    </shape>
+</item>
+
+</layer-list>
