@@ -26,4 +26,9 @@
     <string name="card_add_fail">Failed to save cards to AnkiDroid</string>
     <string name="duplicate_deck_add_attempt">Deck is already saved. Please select this deck from the dropdown menu above.</string>
     <string name="deck_add_success">New deck saved. Please select this deck from the dropdown menu above.</string>
+    <string name="word_translations_title">Word Translations:</string>
+    <string name="examples_title">Examples:</string>
+    <string name="full_translation_title">Full Translation:</string>
+    <string name="full_translation_full_response">Only one full translation is allowed. If you need to add a different one, please delete the currently existing translation</string>
+    <string name="word">Word</string>
 </resources>

@@ -6,36 +6,27 @@
     android:layout_height="match_parent"
     tools:context=".activity.MainActivity">
 
+
     <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/vertical_barrier"
+        android:id="@+id/horizontal_barrier"
         android:layout_width="wrap_content"
-        android:layout_height="500dp"
-        app:barrierDirection="right"
-        app:constraint_referenced_ids="translate_text, translated_text, save_cards_button, translate_button, add_card_button" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="731dp"
+        app:barrierDirection="bottom"
+        app:layout_constraintTop_toBottomOf="@id/translate_text"
+        app:constraint_referenced_ids="translate_text, translate_button, deck_name"/>
 
     <EditText
         android:id="@+id/translate_text"
         android:layout_width="0dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="32dp"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:layout_marginBottom="8dp"
+        android:text=""
         android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@id/horizontal_barrier"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/vertical_barrier"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_default="percent"
-        app:layout_constraintWidth_percent=".5" />
-
-    <EditText
-        android:id="@+id/translated_text"
-        android:layout_width="0dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="32dp"
-        android:textSize="16sp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/vertical_barrier"
-        app:layout_constraintTop_toBottomOf="@id/translate_text"
+        app:layout_constraintRight_toLeftOf="@id/translate_button"
         app:layout_constraintWidth_default="percent"
         app:layout_constraintWidth_percent=".5" />
 
@@ -44,70 +35,42 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/basic_action_button"
         android:text="@string/translate_button"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/add_card_button"
-        app:layout_constraintTop_toBottomOf="@id/translated_text" />
-
-    <Button
-        android:id="@+id/add_card_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="32dp"
-        android:background="@drawable/basic_action_button"
-        android:text="@string/add_card_button"
-        app:layout_constraintLeft_toRightOf="@id/translate_button"
-        app:layout_constraintRight_toLeftOf="@id/vertical_barrier"
-        app:layout_constraintTop_toBottomOf="@id/translated_text" />
-
-    <Button
-        android:id="@+id/save_cards_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="32dp"
-        android:background="@drawable/basic_action_button"
-        android:text="@string/save_cards_button"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/vertical_barrier"
-        app:layout_constraintTop_toBottomOf="@id/translate_button" />
+        app:layout_constraintLeft_toRightOf="@id/translate_text"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/deck_name"
+        app:layout_constraintBottom_toTopOf="@id/horizontal_barrier"
+        />
 
     <TextView
         android:id="@+id/deck_name"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/deck_change_button"
-        app:layout_constraintLeft_toLeftOf="@id/deck_change_button"
-        app:layout_constraintRight_toRightOf="@id/deck_change_button" />
-
-    <Button
-        android:id="@+id/deck_change_button"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@drawable/basic_action_button"
-        android:text="@string/deck_change_button"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/vertical_barrier" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/deck"
+        android:textSize="16sp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/translate_text"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/translate_button"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="4dp"
         android:layout_marginBottom="32dp"
+        android:layout_marginHorizontal="16dp"
         android:scrollbars="vertical"
         app:layoutManager="LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintLeft_toRightOf="@id/vertical_barrier"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/horizontal_barrier"
         app:layout_constraintVertical_bias="1.0"
         app:layout_constraintWidth_default="percent"
         app:layout_constraintWidth_percent=".49" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

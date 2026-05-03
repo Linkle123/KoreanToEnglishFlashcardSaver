@@ -9,9 +9,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.koreantoenglishflashcardsaver.R
 import kotlinx.coroutines.*
 
-@Database(entities = arrayOf(Deck::class, Flashcard::class), version = 1, exportSchema = false)
+
+@Database(entities = arrayOf(Deck::class, Flashcard::class), version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
-public abstract class AppRoomDatabase : RoomDatabase() {
+abstract class AppRoomDatabase : RoomDatabase() {
 
     abstract fun flashcardDao(): FlashcardDao
 
@@ -20,7 +21,7 @@ public abstract class AppRoomDatabase : RoomDatabase() {
     private class FlashcardDatabaseCallback(
         private val scope: CoroutineScope,
         private val context: Context
-    ) : RoomDatabase.Callback() {
+    ) : Callback() {
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             INSTANCE?.let { database: AppRoomDatabase ->
@@ -43,6 +44,8 @@ public abstract class AppRoomDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppRoomDatabase? = null
 
+
+
         fun getDatabase(context: Context, scope: CoroutineScope): AppRoomDatabase {
             // if the INSTANCE is not null, then return it,
             // if it is, then create the database
@@ -52,6 +55,7 @@ public abstract class AppRoomDatabase : RoomDatabase() {
                     AppRoomDatabase::class.java,
                     "flashcarddeck_database"
                 )
+                    .fallbackToDestructiveMigration() // Wipes data on version change
                     .allowMainThreadQueries()
                     .addCallback(FlashcardDatabaseCallback(scope, context))
                     .build()

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -31,7 +32,6 @@ class MainActivity : BaseActivity() {
     lateinit var deckTitle: TextView
 
     lateinit var inputText: EditText
-    lateinit var outputText: EditText
 
     lateinit var ankiHelper: AnkiApi
 
@@ -63,15 +63,10 @@ class MainActivity : BaseActivity() {
 
         // Initialize the textfields to null
         inputText = findViewById(R.id.translate_text)
-        outputText = findViewById(R.id.translated_text)
         inputText.text = null
-        outputText.text = null
 
         // Initialize buttons
         val translateButton = findViewById<Button>(R.id.translate_button)
-        val addCardButton = findViewById<Button>(R.id.add_card_button)
-        val saveCardsButton = findViewById<Button>(R.id.save_cards_button)
-        val deckChangeButton = findViewById<Button>(R.id.deck_change_button)
         deckTitle = findViewById<TextView>(R.id.deck_name)
         deckTitle.text = selectedDeckName
 
@@ -79,6 +74,7 @@ class MainActivity : BaseActivity() {
         translateButton.setOnClickListener{
             translateService.translate(inputText.text.toString())
         }
+        /*
         addCardButton.setOnClickListener {
             databaseHelper.addCard(inputText.text.toString(), mutableListOf(Pair("", arrayOf(""))), null)
             inputText.text.clear()
@@ -95,28 +91,24 @@ class MainActivity : BaseActivity() {
 
         }
 
+         */
+
         // Asynchronously fetch data from the translateService
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED){
-                translateService.cardState.collect{
-                    // First checks if whether it could get any result at all
-                    if (translateService.cardState.value.word == "" || translateService.cardState.value.translations == null){
-                        Toast.makeText(
-                            baseContext,
-                            resources.getString(R.string.translation_api_fail),
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                    // Then checks if it failed to get a complete result
-                    else if(translateService.cardState.value.examples == null){
-                        Toast.makeText(
-                            baseContext,
-                            resources.getString(R.string.translation_result_fail),
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                    // If it passes both checks, then it returned a complete translation result
-                    else {
+                translateService.events.collect{ event ->
+                    Log.i("Status update", "collected translation")
+                    when (event){
+                        is TranslateViewModel.TranslationEvent.Success -> {
+                            startTranslationEditActivity(event.card)
+                        }
+                        is TranslateViewModel.TranslationEvent.ApiError -> {
+                            Toast.makeText(baseContext, R.string.translation_api_fail, Toast.LENGTH_LONG).show()
+                        }
+                        is TranslateViewModel.TranslationEvent.ResultIncomplete -> {
+                            Toast.makeText(baseContext, R.string.translation_result_fail, Toast.LENGTH_LONG).show()
+                            startTranslationEditActivity(event.card)
+                        }
 
                     }
                 }
@@ -156,7 +148,17 @@ class MainActivity : BaseActivity() {
                 }
             }
         }
+    }
 
+    val openTranslationEditActivity = registerForActivityResult(ActivityResultContracts.StartActivityForResult())
+    { result: ActivityResult ->
+        if(result.resultCode == Activity.RESULT_OK) {
+            if(result.data != null) {
+                if(intent.getSerializableExtra("flashcard") != null) {
+                    val flashcard = (intent.getSerializableExtra("flashcard") as Flashcard?)!!
+                }
+            }
+        }
     }
 
     fun startDeckChangeActivity(){
@@ -165,6 +167,19 @@ class MainActivity : BaseActivity() {
             putExtra("deck_list", decks)
         }
         openDeckChangeActivity.launch(intent)
+    }
+
+    fun startTranslationEditActivity(flashcard: Flashcard){
+        Log.i("Launching translation edit activity:", "launched")
+        val intent = Intent(this, TranslationEditActivity::class.java).apply{
+            putExtra("flashcard", flashcard)
+        }
+        Log.i("Got Card", flashcard.word)
+        flashcard.getTranslationsAsString()?.let { Log.i("Got Card", it) }
+        flashcard.getExamplesAsString()?.let { Log.i("Got Card", it) }
+        flashcard.directTranslation?.let { Log.i("Got Card", it) }
+
+        openTranslationEditActivity.launch(intent)
     }
 
 }

@@ -22,7 +22,10 @@ class FlashCardAdapter(private val context: Context, private val onCloseClick: (
             val flashcard: ConstraintLayout = view.findViewById(R.id.flashcard)
             val word: TextView = view.findViewById(R.id.word_item)
             val translation: TextView = view.findViewById(R.id.word_item_translations)
+            val border2: View = view.findViewById(R.id.border2)
             val exampleSentences: TextView = view.findViewById(R.id.word_item_examples)
+            val border3: View = view.findViewById(R.id.border3)
+            val directTranslation: TextView = view.findViewById(R.id.word_item_direct_translation)
             val closebutton: Button = view.findViewById(R.id.close_button)
             var id: Int = -1
             init {
@@ -44,15 +47,30 @@ class FlashCardAdapter(private val context: Context, private val onCloseClick: (
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
         val item = getItem(position)
-        holder.translation.text = item.getTranslationsAsString()
-        val rawExamples = item.getExamplesAsString()
-        if (rawExamples != null) {
-            holder.exampleSentences.text = rawExamples
-        }
+        // Gets each text Value and updates the view accordingly
+        updateTextView(holder.translation, holder.border2, item.getTranslationsAsString())
+        updateTextView(holder.exampleSentences, holder.border2, item.getExamplesAsString())
+        updateTextView(holder.directTranslation, holder.border3, item.directTranslation)
         holder.word.text = item.word
         holder.id = item.id
         holder.itemView.setOnClickListener {
             onCardClick?.invoke(item) // Trigger the callback
+        }
+    }
+
+    /**
+     * If the text is not null, sets the given textview's text to that text.
+     * If the text is null, sets both the given textview and border's visibility to View.GONE
+      */
+    fun updateTextView(view: TextView, border: View, text: String?){
+        if (text != null) {
+            view.visibility = View.VISIBLE
+            border.visibility = View.VISIBLE
+            view.text = text
+        }
+        else {
+            view.visibility = View.GONE
+            border.visibility = View.GONE
         }
     }
 

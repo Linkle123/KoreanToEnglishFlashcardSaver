@@ -1,8 +1,6 @@
 package com.example.koreantoenglishflashcardsaver
 
 import android.util.Log
-import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -45,24 +43,9 @@ class TranslateApiTest {
                 webViewRenderer = WebViewRenderer.getInstance(activity)
                 translateRepository = TranslateRepository(webViewRenderer)
                 translateService = TranslateViewModel(translateRepository)
-
-                // Re-initialize or attach the singleton's webView to this activity's window
-                val wv = webViewRenderer.getOrCreateWebView(activity)
-                (wv.parent as? ViewGroup)?.removeView(wv)
-
-                // Add the webview to the activity layout to "wake it up"
-                val layout = FrameLayout(activity)
-                activity.setContentView(layout)
-                layout.addView(wv, FrameLayout.LayoutParams(1, 1)) // Tiny, invisible but "active"
             }
         }
     }
-
-    /*
-    @Test
-    fun getCardState() {
-        val translateService = getClass()
-    }*/
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
@@ -70,7 +53,7 @@ class TranslateApiTest {
         val response = withContext(Dispatchers.Main) {
             webViewRenderer.fetchRenderedHtml("https://korean.dict.naver.com/koendict/#/search?query=바나나")
         }
-        Log.i("response", response.toString())
+        Log.i("response", response)
 
         assert(response.contains("a bunch of <strong class=\"highlight\">bananas</strong> / grapes, etc."))
     }
@@ -81,7 +64,7 @@ class TranslateApiTest {
         val response = withContext(Dispatchers.Main) {
             webViewRenderer.fetchRenderedHtml("https://korean.dict.naver.com/koendict/#/search?query=ㅈㄷㅂ규ㅕㄷ")
         }
-        val doc = Jsoup.parse(response!!)
+        val doc = Jsoup.parse(response)
         val translation = translateRepository.parseHTMLNotFound(doc)
         if(translation != null) {
             assert(translation.equals("ㅈㄷㅂ규ㅕㄷ"))
@@ -94,7 +77,7 @@ class TranslateApiTest {
         val response = withContext(Dispatchers.Main) {
             webViewRenderer.fetchRenderedHtml("https://korean.dict.naver.com/koendict/#/search?query=바나나")
         }
-        val doc = Jsoup.parse(response!!)
+        val doc = Jsoup.parse(response)
         val (translation, examples) = translateRepository.parseHTMLFound(doc)
         val flashcard = Flashcard("바나나", translation, examples)
         Log.i("translations", flashcard.getTranslationsAsString()!!)
@@ -102,13 +85,20 @@ class TranslateApiTest {
             pair.first == "바나나" && pair.second.contentEquals(arrayOf("banana"))
         }
         assert(exists)
-
     }
 
-        /*
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun translate() {
-        val result = translateService.translate("바나나")
-    }*/
+    fun getTranslation() = runTest {
+        val flashcard = withContext(Dispatchers.Main){
+            translateRepository.getTranslation("바나나")
+        }
+        Log.i("translations", flashcard.getTranslationsAsString()!!)
+        val exists = flashcard.translations!!.any { pair ->
+            pair.first == "바나나" && pair.second.contentEquals(arrayOf("banana"))
+        }
+        assert(exists)
+    }
+
 
 }

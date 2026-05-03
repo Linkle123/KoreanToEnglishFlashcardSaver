@@ -1,24 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="MenuButtonStyle" parent="Widget.MaterialComponents.Button">
-        <item name="android:minHeight">48dp</item>
-        <item name="android:minWidth">88dp</item>
-        <item name="android:insetTop">4dp</item>
-        <item name="android:insetBottom">4dp</item>
-        <item name="android:textSize">14sp</item>
-        <item name="android:layout_marginTop">8dp</item>
-        <item name="android:layout_marginBottom">8dp</item>
-        <item name="android:layout_width">90dp</item>
-        <item name="android:background">@drawable/basic_menu_button</item>
+    <style name="MenuButtonStyle" parent="Widget.AppCompat.PopupMenu">
+
+        <item name="android:popupBackground">@drawable/basic_menu_button</item>
+        <item name="android:itemBackground">@android:color/transparent</item>
+        <item name="backgroundTint">@null</item>
     </style>
 
         <style name="AppTheme" parent="android:Theme.Light">
     <!--<item name="android:popupMenuStyle">@style/PopupMenu</item>-->
 </style>
+    <style name="PopupWindow" parent="Widget.AppCompat.PopupWindow">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowCloseOnTouchOutside">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <style name="Alert" parent="Theme.AppCompat.DayNight.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/base_background</item>
+    </style>
 <!--
     <style name="PopupMenu" parent="@android:style/Widget.PopupMenu">
         <item name="android:popupBackground">style="@style/MenuButtonStyle"</item>
     </style> -->
 
-    <style name="Theme.KoreanToEnglishFlashcardSaver" parent="Theme.AppCompat.DayNight.DarkActionBar" />
+    <style name="Theme.KoreanToEnglishFlashcardSaver" parent="Theme.AppCompat.DayNight.DarkActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">@drawable/base_background</item>
+        <item name="android:popupMenuStyle">@style/MenuButtonStyle</item>
+        <item name="popupMenuStyle">@style/MenuButtonStyle</item>
+    </style>
 </resources>

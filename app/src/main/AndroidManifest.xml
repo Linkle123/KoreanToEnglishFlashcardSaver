@@ -27,6 +27,11 @@
             android:exported="false"
             android:parentActivityName=".activity.MainActivity"/>
         <activity
+            android:name=".activity.TranslationEditActivity"
+            android:exported="false"
+            android:parentActivityName=".activity.MainActivity"
+            android:theme="@style/PopupWindow"/>
+        <activity
             android:name=".activity.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.KoreanToEnglishFlashcardSaver">

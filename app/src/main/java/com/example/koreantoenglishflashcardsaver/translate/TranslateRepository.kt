@@ -1,65 +1,67 @@
 package com.example.koreantoenglishflashcardsaver.translate
 
+import android.util.Log
 import com.example.koreantoenglishflashcardsaver.model.Flashcard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
-class TranslateRepository(private  val webViewRenderer: WebViewRenderer) {
+class TranslateRepository(private val webViewRenderer: WebViewRenderer) {
+
     suspend fun getTranslation(word: String): Flashcard{
-        val html = webViewRenderer.fetchRenderedHtml("https://korean.dict.naver.com/koendict/#/search?query=$word")
-        val result: Flashcard = Flashcard("", null, null)
+        try{
+            val html = webViewRenderer.fetchRenderedHtml("https://korean.dict.naver.com/koendict/#/search?query=$word")
+            Log.i("Success", "Successfully found html")
         return withContext(Dispatchers.IO) {
             // First check if the search result found anything.
             val doc = Jsoup.parse(html)
-            val found = doc.getElementsByClass("section_empty").isEmpty()
+            val notFound = doc.getElementsByClass("section_empty").isNotEmpty()
             // If it didn't, return only the result of machine translation
-            if (!found) {
-                val translation = parseHTMLNotFound(doc)
-                if (translation != null) {
-                    result.copy(
+            if (notFound) {
+                val directTranslation = parseHTMLNotFound(doc)
+                if (directTranslation != null) {
+                    Flashcard(
                         word = word,
-                        translations = mutableListOf(Pair(word, arrayOf(translation))),
-                        examples = null
+                        translations = null,
+                        examples = null,
+                        directTranslation = directTranslation
                     )
-                } else result.copy(
+                } else Flashcard(
                     word = "",
                     translations = null,
-                    examples = null)
+                    examples = null,
+                    directTranslation = null)
             }
             // If it did, return all of the requested materials
             else {
-                val (translation, examples) = parseHTMLFound(doc)
-                result.copy(
+                val (translation, examples, directTranslation) = parseHTMLFound(doc)
+                Flashcard(
                     word = word,
                     translations = translation,
-                    examples = examples)
+                    examples = examples,
+                    directTranslation = directTranslation)
             }
-            return@withContext result
         }
+        } catch (e: Exception) {
+            Log.e("CRASH", "Full stack trace:", e)
+            throw e
+    }
     }
 
     /** In the event the word is not found, parses the html only for the translation from papago
      *
      */
     fun parseHTMLNotFound(doc: Document): String? {
-        val translation = doc.getElementById("sectionTranslate")
-        if (translation != null) {
-            val translationResult = translation.getElementsByClass("mean_list").first()
-            return if (translationResult != null) translationResult.text()
-            else "you fucked up"
-        }
-        else
-            return null
+        return getDirectTranslation(doc)
     }
 
     /** In the event the word is found, parses the HTML for the word, related words with expanded context, and multiple definitions
      *
      */
-    fun parseHTMLFound(doc: Document): Pair<MutableList<Pair<String, Array<String>>>, MutableList<Pair<String, String>>>{
+    fun parseHTMLFound(doc: Document): Triple<MutableList<Pair<String, Array<String>>>, MutableList<Pair<String, String>>, String?>{
         val translation : MutableList<Pair<String, Array<String>>> = mutableListOf()
-        var examples: MutableList<Pair<String, String>> = mutableListOf()
+        val examples: MutableList<Pair<String, String>> = mutableListOf()
         val definitionContainer = doc.getElementsByClass("component_keyword has-saving-function").first()
         val exampleContainer = doc.getElementById("searchPage_example")
 
@@ -68,7 +70,7 @@ class TranslateRepository(private  val webViewRenderer: WebViewRenderer) {
         if (definitionElements != null) {
             for (definition in definitionElements) {
                 val word = definition.select("a.link")[0].text()
-                doc.select("p.mean").select(".word_class ").remove();
+                doc.select("p.mean").select(".word_class ").remove()
                 val subDefinitions = definition.select("p.mean").map { it.text() }.toTypedArray()
 
                 if(word.containsKorean()) translation.add(Pair<String, Array<String>>(word, subDefinitions))
@@ -79,13 +81,30 @@ class TranslateRepository(private  val webViewRenderer: WebViewRenderer) {
         val exampleElements = exampleContainer?.getElementsByClass("row")
         if (exampleElements != null) {
             for (example in exampleElements){
-                val sentence = example.getElementsByClass("origin")[0].text()
+                val sentence = example.getElementsByClass("origin")[0].getElementsByClass("text").text()
                 val meaning = example.getElementsByClass("translate")[0].text()
                 examples.add(Pair<String, String>(sentence, meaning))
             }
         }
 
-        return Pair(translation, examples)
+        // Add the direct translation if it exists
+        val directTranslation = getDirectTranslation(doc)
+
+        return Triple(translation, examples, directTranslation)
+    }
+
+    /**
+     * Returns the direct translation if it exists
+     */
+    fun getDirectTranslation(doc: Document): String?{
+        val translation = doc.getElementById("sectionTranslate")
+        if (translation != null) {
+            val translationResult = translation.getElementsByClass("mean_list").first()
+            return if (translationResult != null) translationResult.text()
+            else "you fucked up"
+        }
+        else
+            return null
     }
     fun String.containsKorean(): Boolean = any { it.code in 0xAC00..0xD7AF || it.code in 0x1100..0x11FF || it.code in 0x3130..0x318F }
 }

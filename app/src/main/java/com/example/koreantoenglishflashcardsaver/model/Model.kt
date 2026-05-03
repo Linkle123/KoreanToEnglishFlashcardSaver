@@ -11,10 +11,12 @@ import java.io.Serializable
 data class Flashcard(
     var word: String = "",
     var translations: MutableList<Pair<String, Array<String>>>? = null,
-    var examples: MutableList<Pair<String, String>>? = null) : Serializable{
+    var examples: MutableList<Pair<String, String>>? = null,
+    var directTranslation: String? = null) : Serializable{
     @PrimaryKey(autoGenerate = true) var id: Int = 0
 
-    /** Returns the translations in a readable format as a single String
+    /**
+     * Returns the translations in a readable format as a single String
      */
     fun getTranslationsAsString(): String? {
         val combinedTranslations: MutableList<String> = mutableListOf()
@@ -32,7 +34,8 @@ data class Flashcard(
         else return null
     }
 
-    /** Returns the example sentences in a readable format as a single String.
+    /**
+     * Returns the example sentences in a readable format as a single String.
      * If there are none, returns null
      */
     fun getExamplesAsString(): String?{
@@ -44,6 +47,25 @@ data class Flashcard(
             return combinedExamples.joinToString(separator = "\n")
         }
         else return null
+    }
+
+    /**
+     * Returns the example sentences results in an array format to be consistent with translations
+     * for some functions.
+     */
+    fun getExamplesAsArray():MutableList<Pair<String, Array<String>>>?{
+        return examples?.map { pair ->
+            // Keep the first string, wrap the second string in an array
+            pair.first to arrayOf(pair.second)
+        }?.toMutableList()
+    }
+
+    /**
+     * Returns the direct translation results in an array format to be consistent with translations
+     * for some functions.
+     */
+    fun getDirectTranslationAsArray():MutableList<Pair<String, Array<String>>>?{
+        return if(directTranslation == null) null else mutableListOf(Pair(word, arrayOf(directTranslation!!)))
     }
 }
 class Converters {

@@ -27,9 +27,12 @@ class DatabaseUtils(contextApp: Context, databaseReference: DatabaseViewModel, f
     /** Makes a new Flashcard based on the given fields and inserts it into the database and
      * RecyclerView Adapter
      */
-    fun addCard(word: String, translations: MutableList<Pair<String, Array<String>>>, examples: MutableList<Pair<String, String>>? = null) {
-        if(word != "" && translations.isNotEmpty()) {
-            val card = Flashcard(word, translations, examples)
+    fun addCard(word: String,
+                translations: MutableList<Pair<String, Array<String>>>,
+                examples: MutableList<Pair<String, String>>? = null,
+                directTranslations: String? = null) {
+        if(word != "" && (translations.isNotEmpty() || directTranslations != null)) {
+            val card = Flashcard(word, translations, examples, directTranslations)
             databaseViewModel.insertFlashCard(card)
             adapter.notifyDataSetChanged()
         }

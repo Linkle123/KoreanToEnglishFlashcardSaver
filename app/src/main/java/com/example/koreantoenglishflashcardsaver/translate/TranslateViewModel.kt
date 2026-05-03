@@ -1,19 +1,28 @@
 package com.example.koreantoenglishflashcardsaver.translate
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.koreantoenglishflashcardsaver.model.Flashcard
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jsoup.nodes.Document
 
 class TranslateViewModel (translateRepository: TranslateRepository): ViewModel(){
-    private val _cardState = MutableStateFlow(Flashcard())
-    val cardState: StateFlow<Flashcard> = _cardState.asStateFlow()
+    // Define the possible events
+    sealed class TranslationEvent {
+        data class Success(val card: Flashcard) : TranslationEvent()
+        object ApiError : TranslationEvent()
+        data class ResultIncomplete(val card: Flashcard) : TranslationEvent()
+    }
+    private val _events = Channel<TranslationEvent>()
+    val events = _events.receiveAsFlow()
     val translateRepository: TranslateRepository
     init {
         this.translateRepository = translateRepository
@@ -27,13 +36,18 @@ class TranslateViewModel (translateRepository: TranslateRepository): ViewModel()
       */
     fun translate(word: String){
         viewModelScope.launch(Dispatchers.IO) {
+            Log.i("Status update", "Inside TranslateViewModel")
             val result = translateRepository.getTranslation(word)
-            _cardState.update { currentState ->
-                currentState.copy(
-                    word = result.word,
-                    translations = result.translations,
-                    examples = result.examples
-                )
+            when {
+                result.word.isEmpty() -> {
+                    _events.send(TranslationEvent.ApiError)
+                }
+                result.examples == null -> {
+                    _events.send(TranslationEvent.ResultIncomplete(result))
+                }
+                else -> {
+                    _events.send(TranslationEvent.Success(result))
+                }
             }
         }
     }
