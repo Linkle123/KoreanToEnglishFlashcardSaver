@@ -10,13 +10,13 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import com.example.koreantoenglishflashcardsaver.R
 
-class DeckChangeActivity : ComponentActivity() {
+class DeckChangeActivity : BaseActivity() {
     var newDecks = ArrayList<String>()
     lateinit var savedDecks: MutableList<String>
     lateinit var adapter: ArrayAdapter<String>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.deck_change_popup_activity)
+        setupChildLayout(R.layout.deck_change_popup_activity)
         val intent = intent
         if(intent.getStringArrayListExtra("deck_list") != null) {
             savedDecks = intent.getStringArrayListExtra("deck_list")!!.toMutableList()

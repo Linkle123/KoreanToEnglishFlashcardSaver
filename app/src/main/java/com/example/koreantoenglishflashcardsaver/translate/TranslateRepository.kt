@@ -1,7 +1,9 @@
 package com.example.koreantoenglishflashcardsaver.translate
 
 import android.util.Log
+import com.example.koreantoenglishflashcardsaver.model.ExampleEntry
 import com.example.koreantoenglishflashcardsaver.model.Flashcard
+import com.example.koreantoenglishflashcardsaver.model.TranslationEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
@@ -59,9 +61,9 @@ class TranslateRepository(private val webViewRenderer: WebViewRenderer) {
     /** In the event the word is found, parses the HTML for the word, related words with expanded context, and multiple definitions
      *
      */
-    fun parseHTMLFound(doc: Document): Triple<MutableList<Pair<String, Array<String>>>, MutableList<Pair<String, String>>, String?>{
-        val translation : MutableList<Pair<String, Array<String>>> = mutableListOf()
-        val examples: MutableList<Pair<String, String>> = mutableListOf()
+    fun parseHTMLFound(doc: Document): Triple<MutableList<TranslationEntry>, MutableList<ExampleEntry>, String?>{
+        val translation : MutableList<TranslationEntry> = mutableListOf()
+        val examples: MutableList<ExampleEntry> = mutableListOf()
         val definitionContainer = doc.getElementsByClass("component_keyword has-saving-function").first()
         val exampleContainer = doc.getElementById("searchPage_example")
 
@@ -71,9 +73,9 @@ class TranslateRepository(private val webViewRenderer: WebViewRenderer) {
             for (definition in definitionElements) {
                 val word = definition.select("a.link")[0].text()
                 doc.select("p.mean").select(".word_class ").remove()
-                val subDefinitions = definition.select("p.mean").map { it.text() }.toTypedArray()
+                val subDefinitions = definition.select("p.mean").map { it.text() }.toList()
 
-                if(word.containsKorean()) translation.add(Pair<String, Array<String>>(word, subDefinitions))
+                if(word.containsKorean()) translation.add(TranslationEntry(word, subDefinitions))
             }
         }
 
@@ -83,7 +85,7 @@ class TranslateRepository(private val webViewRenderer: WebViewRenderer) {
             for (example in exampleElements){
                 val sentence = example.getElementsByClass("origin")[0].getElementsByClass("text").text()
                 val meaning = example.getElementsByClass("translate")[0].text()
-                examples.add(Pair<String, String>(sentence, meaning))
+                examples.add(ExampleEntry(sentence, meaning))
             }
         }
 

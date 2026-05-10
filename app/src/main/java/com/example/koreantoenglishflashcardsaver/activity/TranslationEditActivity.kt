@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
@@ -17,11 +16,12 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.children
 import com.example.koreantoenglishflashcardsaver.R
+import com.example.koreantoenglishflashcardsaver.model.ExampleEntry
 import com.example.koreantoenglishflashcardsaver.model.Flashcard
+import com.example.koreantoenglishflashcardsaver.model.TranslationEntry
 
 class TranslationEditActivity: Activity() {
     lateinit var flashcard: Flashcard
@@ -29,8 +29,8 @@ class TranslationEditActivity: Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.translation_edit_popup_activity)
-        if(intent.getSerializableExtra("flashcard") != null) {
-            flashcard = (intent.getSerializableExtra("flashcard") as Flashcard?)!!
+        if(intent.getParcelableExtra<Flashcard>("flashcard") != null) {
+            flashcard = (intent.getParcelableExtra("flashcard") as Flashcard?)!!
             Log.i("Got Card", flashcard.word)
             flashcard.getTranslationsAsString()?.let { Log.i("Got Card", it) }
             flashcard.getExamplesAsString()?.let { Log.i("Got Card", it) }
@@ -48,8 +48,13 @@ class TranslationEditActivity: Activity() {
         val saveButton = findViewById<Button>(R.id.add_card_button)
         saveButton.setOnClickListener {
             val sendIntent = Intent(this, MainActivity::class.java)
-            getAllTranslations(findViewById<LinearLayout>(R.id.translation_entry_container))
+            val output: Flashcard = getAllTranslations(findViewById<LinearLayout>(R.id.translation_entry_container), flashcard.word)
+            flashcard.copyMembers(output)
+            Log.i("Sending position back", intent.getIntExtra("position", 0).toString())
+
             sendIntent.putExtra("flashcard", flashcard)
+            Log.i("item id", flashcard.id.toString())
+            sendIntent.putExtra("position", intent.getIntExtra("position", 0))
             setResult(RESULT_OK, sendIntent)
             finish()
         }
@@ -69,24 +74,35 @@ class TranslationEditActivity: Activity() {
         window.attributes = params
     }
 
-    fun getAllTranslations(root: View){
-        val wordTranslationsLayout = root.findViewWithTag<ConstraintLayout>(resources.getString(R.string.word_translations_title))
-        flashcard.translations = getMemberData(wordTranslationsLayout)
-        val examplesLayout = root.findViewWithTag<ConstraintLayout>(resources.getString(R.string.examples_title))
-        flashcard.examples = getMemberData(examplesLayout).mapNotNull{
-                (sentence, definition) ->
-            if (definition.size == 1) sentence to definition[0]
-            else null}.toMutableList()
-        val fullTranslationLayout = root.findViewWithTag<ConstraintLayout>(resources.getString(R.string.full_translation_title))
-        val fullTranslation = getMemberData(fullTranslationLayout)
-        flashcard.directTranslation = if (fullTranslation.size != 1 || fullTranslation[0].second.size != 1) null else fullTranslation[0].second[0]
+    fun getAllTranslations(root: View, word: String): Flashcard {
+        val wordTranslationsLayout =
+            root.findViewWithTag<ConstraintLayout>(resources.getString(R.string.word_translations_title))
+        val translations =
+            getMemberData(wordTranslationsLayout.findViewById(R.id.translation_entry_body)).mapNotNull { (word, definition)->
+                if (definition.size == 1) TranslationEntry(word, definition)
+                else null
+            }.toMutableList()
+        val examplesLayout =
+            root.findViewWithTag<ConstraintLayout>(resources.getString(R.string.examples_title))
+        val examples =
+            getMemberData(examplesLayout.findViewById(R.id.translation_entry_body)).mapNotNull { (sentence, definition) ->
+                if (definition.size == 1) ExampleEntry(sentence, definition[0])
+                else null
+            }.toMutableList()
+        val fullTranslationLayout =
+            root.findViewWithTag<ConstraintLayout>(resources.getString(R.string.full_translation_title))
+        val fullTranslation =
+            getMemberData(fullTranslationLayout.findViewById(R.id.translation_entry_body))
+        val directTranslation =
+            if (fullTranslation.size != 1 || fullTranslation[0].second.size != 1) null else fullTranslation[0].second[0]
+        return Flashcard(word= word, translations= translations, examples= examples, directTranslation= directTranslation)
     }
     /**
      * Gets all of the selected items as a MutableList
      */
-    fun getMemberData(firstLevel: ConstraintLayout): MutableList<Pair<String, Array<String>>> {
+    fun getMemberData(firstLevel: LinearLayout): MutableList<Pair<String, List<String>>> {
         return firstLevel.children
-            .filterIsInstance<ConstraintLayout>()
+            .filterIsInstance<LinearLayout>()
             .filter { it.isSelected } // NEW: Only process 2nd-level layouts that are selected
             .mapNotNull { secondLevel ->
                 // 1. Grab the header title from the 2nd level
@@ -100,7 +116,7 @@ class TranslationEditActivity: Activity() {
                 val selectedItems = itemsContainer.children
                     .filter { it.isSelected } // Only keep selected 3rd-level items
                     .mapNotNull { it.findViewById<TextView>(R.id.subTextView)?.text?.toString() }
-                    .toList().toTypedArray()
+                    .toList()
 
                 headerText to selectedItems
             }
@@ -112,8 +128,10 @@ class TranslationEditActivity: Activity() {
      * Populates the screen with the data from the global flashcard variable
      */
     fun fillPage(){
+        val title = findViewById<TextView>(R.id.word_item)
+        title.text = flashcard.word
         val progenitorContainer = findViewById<LinearLayout>(R.id.translation_entry_container)
-        fillPageSection(progenitorContainer, flashcard.translations, resources.getString(R.string.word_translations_title))
+        fillPageSection(progenitorContainer, flashcard.getTranslationsAsArray(), resources.getString(R.string.word_translations_title))
         fillPageSection(progenitorContainer, flashcard.getExamplesAsArray(), resources.getString(R.string.examples_title))
         fillPageSection(progenitorContainer, flashcard.getDirectTranslationAsArray(), resources.getString(R.string.full_translation_title))
     }
@@ -124,7 +142,7 @@ class TranslationEditActivity: Activity() {
      * The add button opens up an AlertDialog which lets the user insert their own translations,
      * and the selectAllButton lets a user tap once to select all of the members of one section
      */
-    fun fillPageSection(progenitorContainer: LinearLayout, items: MutableList<Pair<String, Array<String>>>?, title: String){
+    fun fillPageSection(progenitorContainer: LinearLayout, items: MutableList<Pair<String, List<String>>>?, title: String){
         val layout = layoutInflater.inflate(R.layout.translation_entry_group_layout, progenitorContainer, false)
         layout.tag = title
         val body = layout.findViewById<LinearLayout>(R.id.translation_entry_body)
@@ -177,7 +195,7 @@ class TranslationEditActivity: Activity() {
      * Each Pair represents a word and a collection of potential translations, which the user
      * can select or unselect to save to their flashcard.
      */
-    fun inflateTranslationCategories(container: LinearLayout, items: MutableList<Pair<String, Array<String>>>, isEditable: Boolean){
+    fun inflateTranslationCategories(container: LinearLayout, items: MutableList<Pair<String, List<String>>>, isEditable: Boolean){
         items.forEach { (word, definition) ->
             val itemView = layoutInflater.inflate(R.layout.translation_entry_layout, container, false)
             val textView = itemView.findViewById<TextView>(R.id.translation_entry)
@@ -290,7 +308,7 @@ class TranslationEditActivity: Activity() {
      * Creates an AlertDialog to let the user to add their own members
      */
     @SuppressLint("CutPasteId")
-    private fun showAddDialog(addMultiples: Boolean, defaultWord: String? = null, onResult: (Pair<String, Array<String>>) -> Unit){
+    private fun showAddDialog(addMultiples: Boolean, defaultWord: String? = null, onResult: (Pair<String, List<String>>) -> Unit){
         val builder = AlertDialog.Builder(this, R.style.Alert)
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_translation_entry, null)
 
@@ -336,7 +354,7 @@ class TranslationEditActivity: Activity() {
                     if (entryName.isNotBlank()) entries.add(entryName)
                 }
 
-                onResult(Pair(word, entries.toTypedArray()))
+                onResult(Pair(word, entries.toList()))
             }
             .setNegativeButton("Cancel", null)
             .show()

@@ -72,5 +72,22 @@
         app:layout_constraintWidth_default="percent"
         app:layout_constraintWidth_percent=".49" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/save_all_cards_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="10dp"
+        app:backgroundTint="@color/purple_button_border"
+        app:fabSize="normal"
+        app:maxImageSize="32dp"
+        app:srcCompat="@android:drawable/ic_menu_save"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        tools:layout_editor_absoluteX="342dp"
+        tools:layout_editor_absoluteY="654dp" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

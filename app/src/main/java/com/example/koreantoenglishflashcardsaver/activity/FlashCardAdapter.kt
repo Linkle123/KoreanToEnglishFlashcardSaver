@@ -1,6 +1,7 @@
 package com.example.koreantoenglishflashcardsaver.activity
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,9 +14,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.koreantoenglishflashcardsaver.R
 import com.example.koreantoenglishflashcardsaver.model.Flashcard
 
-class FlashCardAdapter(private val context: Context, private val onCloseClick: (position: Int, id: Int) -> Unit)
+class FlashCardAdapter(private val context: Context, private val onCloseClick: (position: Int, id: Int) -> Unit, private val onCardClick: ((flashcard: Flashcard, position: Int) -> Unit))
     : ListAdapter<Flashcard, FlashCardAdapter.ItemViewHolder>(FlashCardComparator()){
-        var onCardClick: ((Flashcard) -> Unit)? = null // Option A: Kotlin Function
 
         class ItemViewHolder(private val view: View, private val onCloseClick: (position: Int, id: Int) -> Unit)
             : RecyclerView.ViewHolder(view){
@@ -47,14 +47,19 @@ class FlashCardAdapter(private val context: Context, private val onCloseClick: (
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
         val item = getItem(position)
+        val context = holder.word.context
         // Gets each text Value and updates the view accordingly
-        updateTextView(holder.translation, holder.border2, item.getTranslationsAsString())
-        updateTextView(holder.exampleSentences, holder.border2, item.getExamplesAsString())
-        updateTextView(holder.directTranslation, holder.border3, item.directTranslation)
+        updateTextView(holder.translation, holder.border2, item.getTranslationsAsString(), context.getString(R.string.word_translations_title))
+        updateTextView(holder.exampleSentences, holder.border2, item.getExamplesAsString(), context.getString(R.string.examples_title))
+        updateTextView(holder.directTranslation, holder.border3, item.directTranslation, context.getString(R.string.full_translation_title))
         holder.word.text = item.word
         holder.id = item.id
+        Log.i("item position", position.toString())
+        Log.i("item id", item.id.toString())
         holder.itemView.setOnClickListener {
-            onCardClick?.invoke(item) // Trigger the callback
+            onCardClick.invoke(item, position) // Trigger the callback
+            Log.i("item position", position.toString())
+            Log.i("item id", item.id.toString())
         }
     }
 
@@ -62,11 +67,11 @@ class FlashCardAdapter(private val context: Context, private val onCloseClick: (
      * If the text is not null, sets the given textview's text to that text.
      * If the text is null, sets both the given textview and border's visibility to View.GONE
       */
-    fun updateTextView(view: TextView, border: View, text: String?){
+    fun updateTextView(view: TextView, border: View, text: String?, title: String){
         if (text != null) {
             view.visibility = View.VISIBLE
             border.visibility = View.VISIBLE
-            view.text = text
+            view.text = "$title $text"
         }
         else {
             view.visibility = View.GONE

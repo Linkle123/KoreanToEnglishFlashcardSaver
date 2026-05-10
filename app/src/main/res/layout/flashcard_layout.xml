@@ -29,7 +29,6 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toBottomOf="@id/word_item"
         app:layout_constraintWidth_percent=".95" />
-
     <TextView
         android:id="@+id/word_item_translations"
         android:layout_width="match_parent"

@@ -20,8 +20,8 @@ class DatabaseViewModel(private val database: AppRoomDatabase) : ViewModel() {
         database.flashcardDao().deleteAll()
     }
 
-    fun updateFlashcards(Flashcard: Flashcard) = viewModelScope.launch {
-        database.flashcardDao().updateFlashcards(Flashcard)
+    fun updateFlashcard(Flashcard: Flashcard) = viewModelScope.launch {
+        database.flashcardDao().updateFlashcard(Flashcard)
     }
 
     fun getAllAlphabetizedDecks(): List<Deck>{

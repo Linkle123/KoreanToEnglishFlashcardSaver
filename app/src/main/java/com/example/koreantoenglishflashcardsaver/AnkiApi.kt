@@ -35,7 +35,7 @@ class AnkiApi(contextApp: Context, databaseUtils: DatabaseUtils) {
             val convertedCards = databaseHelper.convertFlashcardsToStringArray()
             val filteredCards = handleDuplicateCards(convertedCards, modelId!!).toList()
             if (filteredCards.size != 0) {
-                ankiAPI.addNotes(modelId!!, deckId!!, filteredCards, null)
+                ankiAPI.addNotes(modelId, deckId!!, filteredCards, null)
             }
             handler.post{
                 databaseHelper.clearArray()
@@ -76,7 +76,44 @@ class AnkiApi(contextApp: Context, databaseUtils: DatabaseUtils) {
     fun getOrGenerateModelId(): Long?{
         var modelId: Long? = getModelId(context.resources.getString(R.string.model_name))
         if (modelId == null) {
-            modelId = ankiAPI.addNewBasicModel(context.resources.getString(R.string.model_name))
+            // Define your fields
+            val fields = arrayOf("Question", "Definition", "Example", "Direct Translation")
+
+            // The Question side (Front)
+            val qfmt = arrayOf("{{Question}}")
+
+            // The Answer side (Back)
+            // We use conditional tags to hide empty fields and labels
+            val afmt = arrayOf("""
+                {{FrontSide}}
+                <hr id="answer">
+                
+                {{#Definition}}
+                    <div class="definition">{{Definition}}</div>
+                {{/Definition}}
+                
+                {{#Example}}
+                    <div class="example"><i>Ex: {{Example}}</i></div>
+                {{/Example}}
+                
+                {{#Direct Translation}}
+                    <div class="Direct Translation" style="font-size: 0.8em; color: gray;">
+                        Direct Translation: {{Direct Translation}}
+                    </div>
+                {{/Direct Translation}}
+            """.trimIndent())
+
+            // Call the function
+            modelId = ankiAPI.addNewCustomModel(
+                name = context.resources.getString(R.string.model_name),
+                fields = fields,
+                cards = arrayOf("Card 1"),
+                qfmt = qfmt,
+                afmt = afmt,
+                css = ".definition { font-weight: bold; margin-bottom: 10px; }",
+                did = null, // Default deck
+                sortf = 0   // Sort by "Question"
+            )
         }
         return modelId
     }

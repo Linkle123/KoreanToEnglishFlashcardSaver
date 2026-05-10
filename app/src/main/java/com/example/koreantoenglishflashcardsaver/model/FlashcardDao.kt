@@ -19,5 +19,5 @@ interface FlashcardDao {
     suspend fun deleteAll()
 
     @Update
-    fun updateFlashcards(flashcard: Flashcard)
+    fun updateFlashcard(flashcard: Flashcard)
 }

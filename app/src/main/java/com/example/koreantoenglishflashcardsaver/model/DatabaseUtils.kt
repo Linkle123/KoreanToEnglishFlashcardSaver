@@ -6,14 +6,17 @@ import com.example.koreantoenglishflashcardsaver.activity.FlashCardAdapter
 import com.example.koreantoenglishflashcardsaver.R
 import com.example.koreantoenglishflashcardsaver.activity.MainActivity
 
-class DatabaseUtils(contextApp: Context, databaseReference: DatabaseViewModel, flashcardAdapter: FlashCardAdapter) {
+class DatabaseUtils(contextApp: Context, databaseReference: DatabaseViewModel) {
     private val databaseViewModel: DatabaseViewModel
-    val adapter: FlashCardAdapter
+    lateinit var adapter: FlashCardAdapter
     val context: Context
     init {
         databaseViewModel = databaseReference
-        adapter = flashcardAdapter
         context = contextApp
+    }
+
+    fun connectAdapter(flashcardAdapter: FlashCardAdapter){
+        adapter = flashcardAdapter
     }
 
     fun connectRecyclerToData(mainActivity: MainActivity){
@@ -28,14 +31,23 @@ class DatabaseUtils(contextApp: Context, databaseReference: DatabaseViewModel, f
      * RecyclerView Adapter
      */
     fun addCard(word: String,
-                translations: MutableList<Pair<String, Array<String>>>,
-                examples: MutableList<Pair<String, String>>? = null,
+                translations: MutableList<TranslationEntry>?,
+                examples: MutableList<ExampleEntry>? = null,
                 directTranslations: String? = null) {
-        if(word != "" && (translations.isNotEmpty() || directTranslations != null)) {
-            val card = Flashcard(word, translations, examples, directTranslations)
+        // First check if any of the fields have something.
+        if((word != "") && (((translations != null) && translations.isNotEmpty()) || (directTranslations != null) || (examples != null && examples.isNotEmpty()))) {
+            val card = Flashcard(word = word, translations = translations, examples = examples, directTranslation = directTranslations)
             databaseViewModel.insertFlashCard(card)
             adapter.notifyDataSetChanged()
         }
+    }
+
+    /**
+     * Updates the provided flashcard, and the recyclerview at the provided position
+     */
+    fun updateCard(flashcard: Flashcard, position: Int){
+        databaseViewModel.updateFlashcard(flashcard)
+        adapter.notifyItemChanged(position)
     }
 
     fun onItemCloseClick(position: Int, id: Int) {
@@ -55,7 +67,11 @@ class DatabaseUtils(contextApp: Context, databaseReference: DatabaseViewModel, f
         val flashcardArray = mutableListOf<Array<String>>()
         if(databaseViewModel.allFlashcards.value != null) {
             for (flashcard: Flashcard in databaseViewModel.allFlashcards.value!!) {
-                val element = arrayOf<String>(flashcard.word, flashcard.getTranslationsAsString()!!)
+                val element = arrayOf<String>(
+                    flashcard.word,
+                    flashcard.getTranslationsAsString()?: "",
+                    flashcard.getExamplesAsString()?: "",
+                    flashcard.directTranslation?: "")
                 flashcardArray.add(element)
             }
         }

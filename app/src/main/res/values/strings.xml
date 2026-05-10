@@ -19,7 +19,7 @@
     <string name="add_button">Add</string>
     <string name="deck_name">From manhwa</string>
     <string name="deck_label">New Deck Title Here</string>
-    <string name="model_name">Basic</string>
+    <string name="model_name">TriProngedAnswerFormatCard</string>
     <string name="deck_title_label">Choose Deck</string>
     <string name="deck">Deck:</string>
     <string name="deck_new_label">Add New Deck:</string>
@@ -31,4 +31,6 @@
     <string name="full_translation_title">Full Translation:</string>
     <string name="full_translation_full_response">Only one full translation is allowed. If you need to add a different one, please delete the currently existing translation</string>
     <string name="word">Word</string>
+    <string name="home">Home</string>
+    <string name="change_deck">Change Deck</string>
 </resources>

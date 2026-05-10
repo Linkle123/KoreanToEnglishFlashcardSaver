@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -33,19 +34,14 @@ class MainActivity : BaseActivity() {
 
     lateinit var inputText: EditText
 
-    lateinit var ankiHelper: AnkiApi
 
-    private val databaseViewModel: DatabaseViewModel by viewModels {
-        DatabaseViewModelFactory((application as FlashCardDeckApplication).database)
-    }
-    lateinit var databaseHelper: DatabaseUtils
 
     @SuppressLint("DirectDateInstantiation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupChildLayout(R.layout.main_activity)
 
-        adapter = FlashCardAdapter(this) { position, id -> databaseHelper.onItemCloseClick(position, id) }
+        adapter = FlashCardAdapter(this, onCloseClick= {position, id -> databaseHelper.onItemCloseClick(position, id) }, onCardClick = {flashcard, position -> startTranslationEditActivity(flashcard, position) } )
         val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
         recyclerView.adapter = adapter
         val linearLayoutManager = LinearLayoutManager(this)
@@ -53,8 +49,8 @@ class MainActivity : BaseActivity() {
         linearLayoutManager.stackFromEnd = true
         recyclerView.setLayoutManager(linearLayoutManager)
 
-        databaseHelper = DatabaseUtils(this, databaseViewModel, adapter)
-        ankiHelper = AnkiApi(this, databaseHelper)
+        databaseHelper.connectAdapter(adapter)
+
         val translateService = TranslateViewModel(TranslateRepository(WebViewRenderer.getInstance(this)))
 
 
@@ -68,30 +64,18 @@ class MainActivity : BaseActivity() {
         // Initialize buttons
         val translateButton = findViewById<Button>(R.id.translate_button)
         deckTitle = findViewById<TextView>(R.id.deck_name)
+        val saveCardsButton = findViewById<ImageButton>(R.id.save_all_cards_button)
         deckTitle.text = selectedDeckName
 
 
         translateButton.setOnClickListener{
             translateService.translate(inputText.text.toString())
-        }
-        /*
-        addCardButton.setOnClickListener {
-            databaseHelper.addCard(inputText.text.toString(), mutableListOf(Pair("", arrayOf(""))), null)
             inputText.text.clear()
-            outputText.text.clear()
         }
+
         saveCardsButton.setOnClickListener {
             ankiHelper.saveAllCards(deckTitle.text.toString())
         }
-        deckChangeButton.setOnClickListener {
-            startDeckChangeActivity()
-        }
-        // Opens the activity to edit the FlashCard
-        adapter.onCardClick = {item ->
-
-        }
-
-         */
 
         // Asynchronously fetch data from the translateService
         lifecycleScope.launch {
@@ -100,14 +84,14 @@ class MainActivity : BaseActivity() {
                     Log.i("Status update", "collected translation")
                     when (event){
                         is TranslateViewModel.TranslationEvent.Success -> {
-                            startTranslationEditActivity(event.card)
+                            databaseHelper.addCard(event.card.word, event.card.translations, event.card.examples, event.card.directTranslation)
                         }
                         is TranslateViewModel.TranslationEvent.ApiError -> {
                             Toast.makeText(baseContext, R.string.translation_api_fail, Toast.LENGTH_LONG).show()
                         }
                         is TranslateViewModel.TranslationEvent.ResultIncomplete -> {
                             Toast.makeText(baseContext, R.string.translation_result_fail, Toast.LENGTH_LONG).show()
-                            startTranslationEditActivity(event.card)
+                            databaseHelper.addCard(event.card.word, event.card.translations, event.card.examples, event.card.directTranslation)
                         }
 
                     }
@@ -118,67 +102,46 @@ class MainActivity : BaseActivity() {
         databaseHelper.connectRecyclerToData(this)
     }
 
-
-    fun internetIsConnected(): Boolean {
-        return try {
-            val command = "ping -c 1 google.com"
-            Runtime.getRuntime().exec(command).waitFor() == 0
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    fun updateSelectedDeck(newDeckName: String){
-        val selectedDeckName = databaseHelper.updateSelectedDeck(newDeckName)
+    override fun updateSelectedDeck(newDeckName: String){
+        databaseHelper.updateSelectedDeck(newDeckName)
         deckTitle.setText(newDeckName)
     }
 
-    val openDeckChangeActivity = registerForActivityResult(ActivityResultContracts.StartActivityForResult())
-    { result: ActivityResult ->
-        if(result.resultCode == Activity.RESULT_OK) {
-            if(result.data != null) {
-                val newDeckTitle = result.data!!.getStringExtra("deck_title")
-                val newDecks = result.data!!.getStringArrayListExtra("new_decks")
-                if(newDecks != null){
-                    //Log.i("newDeck", newDecks.get(0))
-                    ankiHelper.generateMultipleDecksInAnki(newDecks)
-                }
-                if(newDeckTitle != null){
-                    updateSelectedDeck(newDeckTitle)
-                }
-            }
-        }
-    }
+
+
 
     val openTranslationEditActivity = registerForActivityResult(ActivityResultContracts.StartActivityForResult())
     { result: ActivityResult ->
         if(result.resultCode == Activity.RESULT_OK) {
             if(result.data != null) {
-                if(intent.getSerializableExtra("flashcard") != null) {
-                    val flashcard = (intent.getSerializableExtra("flashcard") as Flashcard?)!!
+                if(result.data!!.getParcelableExtra<Flashcard>("flashcard") != null) {
+                    val flashcard = (result.data!!.getParcelableExtra("flashcard") as Flashcard?)!!
+                    val position = result.data!!.getIntExtra("position", 0)
+                    Log.i("Got Card Back", flashcard.word)
+                    flashcard.getTranslationsAsString()?.let { Log.i("Got Card Back", it) }
+                    flashcard.getExamplesAsString()?.let { Log.i("Got Card Back", it) }
+                    flashcard.directTranslation?.let { Log.i("Got Card Back", it) }
+                    Log.i("Got Card Back", position.toString())
+                    Log.i("item id", flashcard.id.toString())
+
+                    databaseHelper.updateCard(flashcard, position)
                 }
             }
         }
     }
 
-    fun startDeckChangeActivity(){
-        val decks = databaseHelper.convertDecksToStringArray()
-        val intent = Intent(this, DeckChangeActivity::class.java).apply{
-            putExtra("deck_list", decks)
-        }
-        openDeckChangeActivity.launch(intent)
-    }
-
-    fun startTranslationEditActivity(flashcard: Flashcard){
+    fun startTranslationEditActivity(flashcard: Flashcard, position: Int){
         Log.i("Launching translation edit activity:", "launched")
         val intent = Intent(this, TranslationEditActivity::class.java).apply{
             putExtra("flashcard", flashcard)
+            putExtra("position", position)
         }
-        Log.i("Got Card", flashcard.word)
-        flashcard.getTranslationsAsString()?.let { Log.i("Got Card", it) }
-        flashcard.getExamplesAsString()?.let { Log.i("Got Card", it) }
-        flashcard.directTranslation?.let { Log.i("Got Card", it) }
-
+        Log.i("Found Card", flashcard.word)
+        flashcard.getTranslationsAsString()?.let { Log.i("Found Card", it) }
+        flashcard.getExamplesAsString()?.let { Log.i("Found Card", it) }
+        flashcard.directTranslation?.let { Log.i("Found Card", it) }
+        Log.i("Found Card", position.toString())
+        Log.i("item id", flashcard.id.toString())
         openTranslationEditActivity.launch(intent)
     }
 

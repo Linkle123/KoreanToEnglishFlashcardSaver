@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="com.ichi2.anki.permission.READ_WRITE_DATABASE"/>
+    <uses-permission android:name="com.ichi2.anki.permission.READ_WRITE_DATABASE"/>>
     <queries>
         <package android:name="com.ichi2.anki" />
     </queries>
@@ -25,6 +25,7 @@
         <activity
             android:name=".activity.DeckChangeActivity"
             android:exported="false"
+            android:theme="@style/Theme.KoreanToEnglishFlashcardSaver"
             android:parentActivityName=".activity.MainActivity"/>
         <activity
             android:name=".activity.TranslationEditActivity"
