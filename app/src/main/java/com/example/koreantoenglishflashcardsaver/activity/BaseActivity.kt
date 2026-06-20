@@ -70,6 +70,7 @@ open class BaseActivity: AppCompatActivity() {
                 }
             }
         }
+        reattachWebView()
     }
 
     /**
@@ -118,11 +119,16 @@ open class BaseActivity: AppCompatActivity() {
 
         // Inflate the child layout into the FrameLayout
         val contentFrame = findViewById<FrameLayout>(R.id.content_frame)
-        setupWebView(contentFrame)
+        reattachWebView()
         layoutInflater.inflate(layoutResId, contentFrame, true)
 
         databaseHelper = DatabaseUtils(this, databaseViewModel)
         ankiHelper = AnkiApi(this, databaseHelper)
+    }
+
+    fun reattachWebView(){
+        val contentFrame = findViewById<FrameLayout>(R.id.content_frame)
+        setupWebView(contentFrame)
     }
 
     fun setupWebView(layout: FrameLayout){
