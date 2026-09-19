@@ -69,8 +69,8 @@ class DatabaseUtils(contextApp: Context, databaseReference: DatabaseViewModel) {
             for (flashcard: Flashcard in databaseViewModel.allFlashcards.value!!) {
                 val element = arrayOf<String>(
                     flashcard.word,
-                    flashcard.getTranslationsAsString()?: "",
-                    flashcard.getExamplesAsString()?: "",
+                    flashcard.getTranslationsAsHTMLString()?: "",
+                    flashcard.getExamplesAsHTMLString()?: "",
                     flashcard.directTranslation?: "")
                 flashcardArray.add(element)
             }

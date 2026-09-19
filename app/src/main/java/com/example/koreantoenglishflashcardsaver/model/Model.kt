@@ -39,6 +39,25 @@ data class Flashcard(
     }
 
     /**
+     * Returns the translations in a readable format as a single HTML String
+     */
+    fun getTranslationsAsHTMLString(): String? {
+        val combinedTranslations: MutableList<String> = mutableListOf()
+        if (translations != null) {
+            for (translation in translations!!) {
+                combinedTranslations.add(
+                    translation.translationBody.joinToString(
+                        separator = ",",
+                        prefix = "${translation.word}: "
+                    )
+                )
+            }
+            return combinedTranslations.joinToString(separator = "<br>")
+        }
+        else return null
+    }
+
+    /**
      * Returns the example sentences results in an array format to be consistent with translations
      * for some functions.
      */
@@ -60,6 +79,21 @@ data class Flashcard(
                 combinedExamples.add("${example.word}\n${example.exampleBody}")
             }
             return combinedExamples.joinToString(separator = "\n")
+        }
+        else return null
+    }
+
+    /**
+     * Returns the example sentences in a readable format as a single HTML String.
+     * If there are none, returns null
+     */
+    fun getExamplesAsHTMLString(): String?{
+        val combinedExamples: MutableList<String> = mutableListOf()
+        if (examples != null) {
+            for (example in examples!!){
+                combinedExamples.add("${example.word}\n${example.exampleBody}")
+            }
+            return combinedExamples.joinToString(separator = "<br>")
         }
         else return null
     }
