@@ -83,8 +83,16 @@ class TranslateRepository(private val webViewRenderer: WebViewRenderer) {
         val exampleElements = exampleContainer?.getElementsByClass("row")
         if (exampleElements != null) {
             for (example in exampleElements){
-                val sentence = example.getElementsByClass("origin")[0].getElementsByClass("text").text()
-                val meaning = example.getElementsByClass("translate")[0].text()
+                val sentenceContainer = example.getElementsByClass("origin")
+                var sentence = ""
+                if(sentenceContainer.isNotEmpty()){
+                    sentence = sentenceContainer[0].text()
+                }
+                val meaningContainer = example.getElementsByClass("translate")
+                var meaning = ""
+                if(meaningContainer.isNotEmpty()) {
+                    meaning = meaningContainer[0].text()
+                }
                 examples.add(ExampleEntry(sentence, meaning))
             }
         }
